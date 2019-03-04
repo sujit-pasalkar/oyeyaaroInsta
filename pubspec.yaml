@@ -1,0 +1,119 @@
+name: connect_yaar
+description: A new Flutter application.
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^0.1.2
+  cloud_firestore:
+  firebase_auth:
+  firebase_storage: ^1.0.4
+  shared_preferences: ^0.4.3
+  http: ^0.12.0
+  connectivity:
+  fluttertoast: ^2.2.6
+  intl: ^0.15.7
+  image_picker: ^0.4.10
+  cached_network_image: ^0.5.1
+  share: ^0.5.3
+  flutter_launcher_icons: "^0.7.0"
+  firebase_messaging: ^2.1.0
+  video_player: ^0.7.2
+  chewie: ^0.9.5
+  # custom_chewie: ^0.7.0
+  path_provider: ^0.4.1
+  audioplayers: ^0.7.8
+    # 0.8.2
+  thumbnails: ^1.0.1
+  flutter_native_image:
+   git: https://github.com/btastic/flutter_native_image.git
+  photo_view:
+  flutter_ffmpeg:
+    git:
+      url: git://github.com/tanersener/flutter-ffmpeg.git
+      ref: v0.1.1
+      path: packages/flutter_ffmpeg_full-gpl_lts
+  path: any
+  marquee: ^1.1.0
+  camera: ^0.2.9+1
+  simple_permissions: ^0.1.9
+  audio_recorder: 0.0.6
+
+flutter_icons:
+  android: true # "launcher_icon" 
+  ios: true
+  image_path: "assets/dart.png"
+  image_path_android: "assets/dart.png"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+# For information on the generic Dart part of this file, see the
+# following page: https://www.dartlang.org/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  # assets:
+  #   - assets/searchGroup.png
+  #   - assets/images.jpg
+  #   # - assets/mimi2.gif
+  #   - assets/no_img.png
+  #   - assets/test.png
+  #   - assets/dart.png
+  #   - assets/video_call.png
+  #   - assets/short.png
+  #   - assets/ic_shutter_1.png
+  #   - assets/ic_switch_camera_3.png
+  #   - assets/music.png
+  #   - assets/ic_record_stop.png
+  #   - assets/ic_music_select.png
+  #   - assets/video-camera-icon.png
+  #   - assets/stop-flat.png
+
+  assets:
+    - assets/
+
+  #  - images/a_dot_ham.jpeg
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.io/assets-and-images/#resolution-aware.
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.io/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Raleway
+  #     fonts:
+  #       - asset: fonts/Raleway-Regular.ttf
+  #       - asset: fonts/Raleway-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Raleway-SemiBold.ttf
+  #         weight: 600
+  #    - family: Schyler
+  #      fonts:
+  #        - asset: fonts/Schyler-Regular.ttf
+  #        - asset: fonts/Schyler-Italic.ttf
+  #          style: italic
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.io/custom-fonts/#from-packages
