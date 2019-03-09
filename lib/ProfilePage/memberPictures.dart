@@ -63,7 +63,7 @@ Future<List<JoinedUsers>> fetchJoinUsers(peerId, http.Client client) async {
       headers: {"Content-Type": "application/json"}, body: bodyData);
   // Use the compute function to run parsePhotos in a separate isolate
   var resM = jsonDecode(responseM.body);
- print('RESm-------->${resM['users']}');
+  print('RESm-------->${resM['users']}');
   arr = new List.from(resJ['users'])..addAll(resM['users']);
   return compute(parseUsersJ, jsonEncode(arr));
 }
@@ -72,7 +72,6 @@ List<JoinedUsers> parseUsersJ(String responseBody) {
   final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
   return parsed.map<JoinedUsers>((json) => JoinedUsers.fromJson(json)).toList();
 }
-
 
 //class
 class Members extends StatefulWidget {
@@ -103,7 +102,12 @@ class _MembersState extends State<Members> {
           if (snapshot.hasError) print(snapshot.error);
           return snapshot.hasData
               ? UsersList(snapshot.data)
-              : Center(child: CircularProgressIndicator());
+              : Center(
+                  child: CircularProgressIndicator(
+                    valueColor:
+                        new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3)),
+                  ),
+                );
         },
       ),
     );
@@ -137,7 +141,7 @@ class _MembersState extends State<Members> {
                     height: 100.0,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(5),
-                      color:Color(0xffb00bae3),// Colors.indigo[900],
+                      color: Color(0xffb00bae3), // Colors.indigo[900],
                     ),
                     child: Container(
                       margin: EdgeInsets.all(3.0),
@@ -152,7 +156,6 @@ class _MembersState extends State<Members> {
                       ),
                     ),
                   ),
-
                   Positioned(
                     bottom: 0.0,
                     left: 0.0,
@@ -162,9 +165,9 @@ class _MembersState extends State<Members> {
                         margin: EdgeInsets.fromLTRB(3, 0, 3, 3),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(5.0),
-                          bottomRight: Radius.circular(5.0),
-                        ),
+                            bottomLeft: Radius.circular(5.0),
+                            bottomRight: Radius.circular(5.0),
+                          ),
                           gradient: LinearGradient(
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
@@ -186,7 +189,6 @@ class _MembersState extends State<Members> {
                           ),
                         )),
                   )
-
                 ],
               ),
             ),

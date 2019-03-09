@@ -200,7 +200,7 @@ class ChatPrivateState extends State<ChatPrivate> {
 
   Future getCameraImage() async {
     try {
-    print('in getCameraImage');
+      print('in getCameraImage');
       File compressedImage =
           await ImagePicker.pickImage(source: ImageSource.camera);
 
@@ -234,7 +234,9 @@ class ChatPrivateState extends State<ChatPrivate> {
 
       if ((fileSize / 1024) > 500) {
         imageFile = await FlutterNativeImage.compressImage(compressedImage.path,
-            percentage: 75, quality: 75);
+            percentage: 75,
+            quality:
+                75); //store compress image in OyeYaaro/OyeYaaroImages/sent/ path
       } else {
         imageFile = compressedImage;
       }
@@ -252,9 +254,9 @@ class ChatPrivateState extends State<ChatPrivate> {
 
   Future getCameraVideo() async {
     try {
-       setState(() {
-      isLoading = true;
-    });
+      setState(() {
+        isLoading = true;
+      });
       File originalVideoUrl =
           await ImagePicker.pickVideo(source: ImageSource.camera);
       print('Original Video: ${originalVideoUrl.path}');
@@ -278,7 +280,7 @@ class ChatPrivateState extends State<ChatPrivate> {
 
   Future getGalleryVideo() async {
     try {
-       setState(() {
+      setState(() {
         isLoading = true;
       });
       File originalVideoUrl =
@@ -296,7 +298,7 @@ class ChatPrivateState extends State<ChatPrivate> {
       });
     } catch (e) {
       print('error while opening: $e');
-        setState(() {
+      setState(() {
         isLoading = false;
       });
     }
@@ -306,12 +308,20 @@ class ChatPrivateState extends State<ChatPrivate> {
     String compressedVideoUrl;
     MethodChannel platform = const MethodChannel("plmlogix.recordvideo/info");
 
+    print('in _compressVideo : timestamp : $timestamp');
+    http.Response responseTime =
+        await http.get('http://54.200.143.85:4200/time');
+    timestamp = jsonDecode(responseTime.body)['timestamp'];
+    print('Got timestamp : $timestamp');
+
     Map<String, dynamic> data = <String, dynamic>{
       'originalVideoUrl': originalVideoUrl,
+      'timestamp': timestamp,
     };
 
     try {
       compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
+      print('got compressedVideoUrl from platform method:  $compressedVideoUrl');
     } catch (e) {
       print('error while compressing:$e');
     }
@@ -320,14 +330,14 @@ class ChatPrivateState extends State<ChatPrivate> {
 
   Future uploadVideoFile() async {
     try {
-      print('VideoFILE ******: ${imageFile}');
+      print('VideoFILE ******: $imageFile , timestamp : $timestamp');
       setState(() {
         this.isLoading = true;
       });
 
-      http.Response responseTime =
-          await http.get('http://54.200.143.85:4200/time');
-      timestamp = jsonDecode(responseTime.body)['timestamp'];
+      // http.Response responseTime =
+      //     await http.get('http://54.200.143.85:4200/time');
+      // timestamp = jsonDecode(responseTime.body)['timestamp'];
 
       //s3
       String mediaUrl = await dataService.uploadFileToS3(
@@ -705,10 +715,8 @@ class ChatPrivateState extends State<ChatPrivate> {
                                   //   );
                                   // },
                                   child: CachedNetworkImage(
-                                    placeholder: 
-                                    Container(
-                                      child: CircularProgressIndicator(
-                                          ),
+                                    placeholder: Container(
+                                      child: CircularProgressIndicator(),
                                       // width: 200.0,
                                       // height: 200.0,
                                       padding: EdgeInsets.all(70.0),
@@ -1828,102 +1836,94 @@ class ChatPrivateState extends State<ChatPrivate> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return new Scaffold(
-        key: _scaffoldKey,
-        resizeToAvoidBottomPadding: true,
-        appBar: !isLongpressedForDelete && this.indexesToDelete.length == 0
-            ? new AppBar(
-                title: FlatButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              // UserInfoPage(name: this.name, pin: this.receiverPin),
-                              ProfilePage(userPin: receiverPin)),
-                    );
-                  },
-                  textColor: Colors.white,
-                  splashColor: Color(0xffb00bae3),
-                  child: new Text(
-                    '${this.name}',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 19,
-                    ),
-                  ),
-                ),
-                actions: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.home),
-                    onPressed: () {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/homepage', (Route<dynamic> route) => false);
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.call),
-                    onPressed: () {
-                      callAudio();
-                    },
-                  ),
-                  // new Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                  // ),
-                  IconButton(
-                    icon: Icon(Icons.video_call),
-                    onPressed: () {
-                      callVideo();
-                    },
-                  ),
-                  // new Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                  // ),
-                ],
-                backgroundColor: Color(0xffb00bae3),
-              )
-            : new AppBar(
-                title: Text(
-                  '${this.indexesToDelete.length.toString()}',
+      key: _scaffoldKey,
+      resizeToAvoidBottomPadding: true,
+      appBar: !isLongpressedForDelete && this.indexesToDelete.length == 0
+          ? new AppBar(
+              title: FlatButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            // UserInfoPage(name: this.name, pin: this.receiverPin),
+                            ProfilePage(userPin: receiverPin)),
+                  );
+                },
+                textColor: Colors.white,
+                splashColor: Color(0xffb00bae3),
+                child: new Text(
+                  '${this.name}',
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 19,
                   ),
                 ),
-                actions: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      deleteMsg();
-                    },
-                  ),
-                ],
-                backgroundColor: Color(0xffb00bae3),
               ),
-        body:
-        //  WillPopScope(
-        //   child: 
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.home),
+                  onPressed: () {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/homepage', (Route<dynamic> route) => false);
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.call),
+                  onPressed: () {
+                    callAudio();
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.video_call),
+                  onPressed: () {
+                    callVideo();
+                  },
+                ),
+              ],
+              backgroundColor: Color(0xffb00bae3),
+            )
+          : new AppBar(
+              title: Text(
+                '${this.indexesToDelete.length.toString()}',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                ),
+              ),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    deleteMsg();
+                  },
+                ),
+              ],
+              backgroundColor: Color(0xffb00bae3),
+            ),
+      body:
           Stack(
+        children: <Widget>[
+          Column(
             children: <Widget>[
-              Column(
-                children: <Widget>[
-                  // List of messages
-                  buildListMessage(),
-                  songList(width),
+              // List of messages
+              buildListMessage(),
+              songList(width),
 
-                  songlist2(width),
-                  buildInput(),
-                ],
-              ),
-              // Loading
-              buildLoading()
+              songlist2(width),
+              buildInput(),
             ],
           ),
-          // onWillPop: onBackPress,
-        // )
-        );
+          // Loading
+          buildLoading()
+        ],
+      ),
+      // onWillPop: onBackPress,
+      // )
+    );
   }
 
   removeFrmIndexesToDelete(timestamp) {
@@ -2119,7 +2119,7 @@ class ChatPrivateState extends State<ChatPrivate> {
           ? Container(
               child: Center(
                 child: CircularProgressIndicator(
-                    // valueColor: AlwaysStoppedAnimation<Color>(themeColor)
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))
                     ),
               ),
               color: Colors.white.withOpacity(0.8),
@@ -2218,7 +2218,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                       onChanged: searchOperation,
                       // focusNode: focusNode,
                       onTap: () {
-                        print('ontapp...................---------------');
+                        print('ontapp.');
                         this.isSearching = true;
                         searchOperation('a');
                       },

@@ -51,10 +51,10 @@ class ChatScreenStateState extends State<ChatScreenState> {
                           fontSize: 20,
                           color: Color(0xffb00bae3),
                         )),
-                        // Text('Start New Chat')
                         ],
                     ))
-              : Center(child: CircularProgressIndicator());
+              : Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3))));
         },
       ),
       // floatingActionButton: new FloatingActionButton(

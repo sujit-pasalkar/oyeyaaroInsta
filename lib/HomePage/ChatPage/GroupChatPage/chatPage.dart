@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:fluttertoast/fluttertoast.dart'; //
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:connect_yaar/models/group_model.dart';
@@ -12,7 +12,6 @@ import '../const.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../groupInfoTabsPage.dart';
-// import 'package:async/async.dart';
 import '../playVideo.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../pages/showImage.dart';
@@ -22,6 +21,7 @@ import '../../../ProfilePage/memberPictures.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import '../../../models/data-service.dart';
 import 'package:thumbnails/thumbnails.dart';
+// import 'package:connect_yaar/models/data-service.dart';
 
 class Choice {
   const Choice({this.title, this.icon});
@@ -49,22 +49,24 @@ class Chat extends StatefulWidget {
   final String chatType;
   final String name;
   final List<GroupModel> groupInfo;
+  final String adminId;
 
-  Chat(
-      {Key key,
-      @required this.peerId,
-      @required this.chatType,
-      @required this.name,
-      @required this.groupInfo})
-      : super(key: key);
+  Chat({
+    Key key,
+    @required this.peerId,
+    @required this.chatType,
+    @required this.name,
+    @required this.groupInfo,
+    @required this.adminId,
+  }) : super(key: key);
 
   @override
   State createState() => new ChatScreenState(
-        peerId: peerId,
-        chatType: chatType,
-        groupInfo: groupInfo,
-        name: name,
-      );
+      peerId: peerId,
+      chatType: chatType,
+      groupInfo: groupInfo,
+      name: name,
+      adminId: adminId);
 }
 
 enum PlayerState { stopped, playing, paused }
@@ -73,6 +75,7 @@ class ChatScreenState extends State<Chat> {
   var _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   String peerId;
+  String adminId;
 
   ChatScreenState({
     Key key,
@@ -80,6 +83,7 @@ class ChatScreenState extends State<Chat> {
     @required this.chatType,
     @required this.groupInfo,
     @required this.name,
+    @required this.adminId,
   }) {
     textEditingController.addListener(() {
       if (textEditingController.text.isEmpty) {
@@ -95,15 +99,15 @@ class ChatScreenState extends State<Chat> {
   }
 
   // //toggel chat type 0 or all
-  List<Choice> choices = const <Choice>[
-    Choice(
-        title: 'Restore Media',
-        icon: Icons.photo_library), //color: Colors.white
-    Choice(
-      title: 'Hide Media',
-      icon: Icons.photo_size_select_large,
-    )
-  ];
+  // List<Choice> choices = const <Choice>[
+  //   Choice(
+  //       title: 'Restore Media',
+  //       icon: Icons.photo_library), //color: Colors.white
+  //   Choice(
+  //     title: 'Hide Media',
+  //     icon: Icons.photo_size_select_large,
+  //   )
+  // ];
   int type = 10;
 
   //delete data
@@ -259,30 +263,80 @@ class ChatScreenState extends State<Chat> {
                         '/homepage', (Route<dynamic> route) => false);
                   },
                 ),
-                PopupMenuButton<Choice>(
+
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                  ),
+                  tooltip: "Menu",
                   onSelected: onItemMenuPress,
-                  itemBuilder: (BuildContext context) {
-                    return choices.map((Choice choice) {
-                      return PopupMenuItem<Choice>(
-                          value: choice,
-                          child: Row(
-                            children: <Widget>[
-                              Icon(
-                                choice.icon,
-                                color: Color(0xffb00bae3),
-                              ),
-                              // Padding(padding: EdgeInsets.only(right: 10),),
-                              // Container(
-                              //   width: 10.0,
-                              // ),
-                              Text(
-                                choice.title,
-                              ),
-                            ],
-                          ));
-                    }).toList();
-                  },
-                ),
+                  itemBuilder: (BuildContext context) => [
+                        PopupMenuItem<String>(
+                          value: 'Restore Media',
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 5.0),
+                            child: Row(
+                              children: <Widget>[
+                                Text("Restore Media"),
+                                Spacer(),
+                                Icon(Icons.photo_library),
+                              ],
+                            ),
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'Hide Media',
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 5.0),
+                            child: Row(
+                              children: <Widget>[
+                                Text("Hide Media"),
+                                Spacer(),
+                                Icon(Icons.photo_size_select_large),
+                              ],
+                            ),
+                          ),
+                        ),
+                        adminId == myId
+                            ? PopupMenuItem<String>(
+                                value: 'Delete Group',
+                                child: Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 5.0),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Text("Delete Group"),
+                                      Spacer(),
+                                      Icon(Icons.delete),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : PopupMenuItem<String>(),
+                      ],
+                )
+
+                // PopupMenuButton<Choice>(
+                //   onSelected: onItemMenuPress,
+                //   itemBuilder: (BuildContext context) {
+                //     return choices.map((Choice choice) {
+                //       return PopupMenuItem<Choice>(
+                //           value: choice,
+                //           child: Row(
+                //             children: <Widget>[
+                //               Icon(
+                //                 choice.icon,
+                //                 color: Color(0xffb00bae3),
+                //               ),
+                //               Text(
+                //                 choice.title,
+                //               ),
+                //             ],
+                //           ));
+                //     }).toList();
+                //   },
+                // ),
               ],
               backgroundColor: Color(0xffb00bae3),
             )
@@ -332,21 +386,35 @@ class ChatScreenState extends State<Chat> {
     );
   }
 
-  void onItemMenuPress(Choice choice) {
-    if (choice.title == 'Restore Media') {
-      // setState(() {
-      //   type = 10;
-      // });
+  void onItemMenuPress(String choice) {
+    if (choice == 'Restore Media') {
       this.setPref(10);
-    } else {
-      print('Hide Media');
-      // setState(() {
-      //   type = 0;
-      // });
+    } else if (choice == 'Hide Media') {
+      // print('Hide Media');
       this.setPref(0);
-
       print('$type ,0');
+    } else if (choice == "Delete Group") {
+      print('delete Media');
+      deleteGroup();
     }
+  }
+
+  deleteGroup() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userPin = prefs.getString('userPin');
+
+    http.Response response = await http.post(
+        "http://54.200.143.85:4200/deleteGroup",
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"dialog_id": peerId, "user_pin": userPin}));
+    var res = jsonDecode(response.body);
+    print('delete group res :$res');
+    Navigator.pop(context);
+
+    // if (res['success']) {
+    //   return true;
+    // } else
+    //   return false;
   }
 
   void _initAudioPlayer() {
@@ -479,13 +547,12 @@ class ChatScreenState extends State<Chat> {
 
   Future getCameraVideo() async {
     try {
-        setState(() {
+      setState(() {
         isLoading = true;
       });
       print('in get camera video');
       var originalVideoUrl =
           await ImagePicker.pickVideo(source: ImageSource.camera);
-      
 
       _compressVideo(originalVideoUrl.path).then((value) {
         imageFile = new File(value);
@@ -497,7 +564,7 @@ class ChatScreenState extends State<Chat> {
       });
     } catch (e) {
       print('error while opening: $e');
-        setState(() {
+      setState(() {
         isLoading = false;
       });
     }
@@ -505,12 +572,12 @@ class ChatScreenState extends State<Chat> {
 
   Future getGalleryVideo() async {
     try {
-        setState(() {
+      setState(() {
         isLoading = true;
       });
       var originalVideoUrl =
           await ImagePicker.pickVideo(source: ImageSource.gallery);
-      
+
       _compressVideo(originalVideoUrl.path).then((value) {
         imageFile = new File(value);
         if (imageFile != null) {
@@ -521,7 +588,7 @@ class ChatScreenState extends State<Chat> {
       });
     } catch (e) {
       print('error while opening: $e');
-        setState(() {
+      setState(() {
         isLoading = false;
       });
     }
@@ -556,7 +623,7 @@ class ChatScreenState extends State<Chat> {
 
       //s3
       String mediaUrl = await dataService.uploadFileToS3(
-          imageFile, 'videos/${widget.peerId}/' + timestamp.toString(), '.mp4');
+          imageFile, 'videos/${widget.peerId}/' + timestamp, '.mp4');
       print('$mediaUrl');
 
       //video thumb  s3
@@ -567,20 +634,21 @@ class ChatScreenState extends State<Chat> {
           quality: 30);
 
       String thumbUrl = await dataService.uploadFileToS3(
-          File(thumb), "vedioThumb/$timestamp", ".jpeg");
+          File(thumb), 'videos/${widget.peerId}/' + timestamp, ".jpeg");
 
       print("uploaded video mediaUrl: " + mediaUrl);
       print("uploaded video thumbUrl: " + thumbUrl);
 
       //call service
       http.Response response =
-          await http.post("http://54.200.143.85:4200/uploadImages",
+          await http.post("http://54.200.143.85:4200/uploadVideos",
               headers: {"Content-Type": "application/json"},
               body: jsonEncode({
-                "url": mediaUrl,
+                "timestamp": timestamp,
+                // "url": mediaUrl,
                 "dialogId": widget.peerId,
                 "senderId": this.myId,
-                "type": "private"
+                "type": "group"
               }));
 
       print('uploadImage res : $response');
@@ -621,19 +689,17 @@ class ChatScreenState extends State<Chat> {
           await http.post("http://54.200.143.85:4200/uploadImages",
               headers: {"Content-Type": "application/json"},
               body: jsonEncode({
-                "url": mediaUrl,
+                // "url": mediaUrl,
+                "timestamp": timestamp,
                 "dialogId": widget.peerId,
                 "senderId": this.myId,
-                "type": "private"
+                "type": "group"
               }));
 
       print('res: $response');
 
       setState(() {
-        onSendMessage(
-            mediaUrl, //"http://54.200.143.85:4200/Media/Images/${chatId}/${timestamp}.jpeg",
-            1,
-            timestamp);
+        onSendMessage(mediaUrl, 1, timestamp);
       });
     } catch (e) {
       print('err while uploading : ${e}');
@@ -1263,7 +1329,6 @@ class ChatScreenState extends State<Chat> {
               children: <Widget>[
                 isLastMessageLeft(index)
                     ?
-
                     // Material(
                     //     child:
                     //     CachedNetworkImage(
@@ -1317,55 +1382,37 @@ class ChatScreenState extends State<Chat> {
                               shape: BoxShape.circle,
                             ),
                             child: Container(
-                              margin: EdgeInsets.all(1.0),
-                              decoration: new BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey,
-                                image: new DecorationImage(
-                                  fit: BoxFit.cover,
-                                  image: new NetworkImage(
-                                      'http://54.200.143.85:4200/profiles/then/' +
-                                          document['senderId'] +
-                                          '.jpg'),
+                                margin: EdgeInsets.all(1.0),
+                                decoration: new BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey[300],
+                                  // image: new DecorationImage(
+                                  //   fit: BoxFit.cover,
+                                  //   image: new NetworkImage(
+                                  //       'http://54.200.143.85:4200/profiles/now/' +
+                                  //           document['senderId'] +
+                                  //           '.jpg'),
+                                  // ),
                                 ),
-                              ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(40.0),
+                                  child: CachedNetworkImage(
+                                    imageUrl:
+                                        'http://54.200.143.85:4200/profiles/now/' +
+                                            document['senderId'] +
+                                            '.jpg',
+                                    placeholder: Padding(
+                                      padding: EdgeInsets.all(15),
+                                      child:SizedBox(
+                                      child: CircularProgressIndicator(
+                                        valueColor:new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3)),
+                                        strokeWidth: 1.0),
+                                    ),),
+                                    errorWidget: new Icon(Icons.error,color: Colors.black,),
+                                  ),
+                                )
 
-                              // child: FadeInImage(
-                              //     image: NetworkImage(
-                              //         'http://54.200.143.85:4200/profiles/now/' +
-                              //             document['senderId'] +
-                              //             '.jpg'),
-                              //     placeholder: NetworkImage(
-                              //         'http://54.200.143.85:4200/profiles/then/' +
-                              //             document['senderId'] +
-                              //             '.jpg')),
-
-                              // child: CachedNetworkImage(
-                              //   placeholder: Container(
-                              //     child: CircularProgressIndicator(),
-                              //     // padding: EdgeInsets.all(5.0),
-                              //     decoration: BoxDecoration(
-                              //       color: Colors.indigo[100],
-                              //       // borderRadius: BorderRadius.all(
-                              //       //   Radius.circular(8.0),
-                              //       // ),
-                              //     ),
-                              //   ),
-                              //   errorWidget: Material(
-                              //     child: Image.network(
-                              //       'images/profiles.png',
-                              //       fit: BoxFit.cover,
-                              //     ),
-                              //     // borderRadius: BorderRadius.all(
-                              //     //   Radius.circular(8.0),
-                              //     // ),
-                              //     clipBehavior: Clip.hardEdge,
-                              //   ),
-                              //   imageUrl:
-                              //       'http://54.200.143.85:4200/profiles/now/' +document['senderId'] +'.jpg',
-                              //   fit: BoxFit.cover,
-                              // ),
-                            ),
+                                ),
                           ),
                         ),
                       )
@@ -2027,7 +2074,9 @@ class ChatScreenState extends State<Chat> {
       child: isLoading
           ? Container(
               child: Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                    valueColor:
+                        new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))),
               ),
               color: Colors.white.withOpacity(0.8),
             )

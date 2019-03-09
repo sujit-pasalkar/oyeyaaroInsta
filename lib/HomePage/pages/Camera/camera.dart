@@ -66,7 +66,7 @@ class _CameraScreenState extends State<CameraScreen> {
           showShareVideoCheckBox.add(false);
         }
       });
-      print('ShowvisL:${showShareVideoCheckBox.length}');
+      print('Showvid:${showShareVideoCheckBox.length}');
       print('videos:${videos.length}');
 
       return videos;
@@ -174,9 +174,26 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget body(dataList) {
     if (dataList.length != 0) {
       if (dataList[0] == 'empty') {
+        // return Center(
+        //   child: Text('${directory.toString()} Path not Exist'),
+        // );
         return Center(
-          child: Text('${directory.toString()} Path not Exist'),
-        );
+          child: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(
+              Icons.folder,
+              size: 80.0,
+              color: Color(0xffb00bae3),
+            ),
+            Text(
+              'Folder Not Found',
+              style: TextStyle(color: Color(0xffb00bae3)),
+            ),
+          ],
+        ),
+      ));
       } else {
         return GridView.count(
           primary: false,
@@ -462,7 +479,7 @@ class _CameraScreenState extends State<CameraScreen> {
       });
 //
       print(
-          '-------------------------------->>>>>${this.groupList[position].ids}');
+          '--->${this.groupList[position].ids}');
       var documentReference = Firestore.instance
           .collection('groups')
           .document(this.groupList[position].ids)
@@ -535,7 +552,7 @@ class _CameraScreenState extends State<CameraScreen> {
       context,
       MaterialPageRoute(builder: (context) => RecordClip()),
     );
-    print('came  back cameara...*****************************************');
+    // print('came  back cameara...');
   }
 
   Widget _menuBuilder() {

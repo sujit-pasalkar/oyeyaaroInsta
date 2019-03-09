@@ -213,7 +213,7 @@ class _UserPinPageState extends State<UserPinPage> {
           _scaffoldKey.currentState.showSnackBar(snackBar);
         }
       } catch (e) {
-        print('Got Service Error ${e}');
+        print('Got Service Error $e');
       }
     } else {
       this.loading = false;
@@ -226,18 +226,19 @@ class _UserPinPageState extends State<UserPinPage> {
       // userDBPhone, userPin, name
       ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('UserPhone', widget.phone);
+    prefs.setString('userPhone', widget.phone);
     prefs.setString('userPin', userPin);
     prefs.setString('userName', result['data'][0]['Name']);
     prefs.setString('groupId', result['data'][0]['Groups'][0]['dialog_id']);
     prefs.setString('collegeName', result['data'][0]['College']);
     prefs.setInt('hideChatMedia', 10);
+    prefs.setString('filterActive', "All");
     currentUser.loadUserDetails();
   }
 
   //#register user to sinch
   Future<String> registerUserSinch(String phone) async {
-    print('SINCH PHONE ******${phone}');
+    print('SINCH PHONE ******$phone');
     var sendMap = <String, dynamic>{
       'from': phone,
     };

@@ -85,7 +85,7 @@ class _PlayScreenState extends State<PlayVideo> {
 
   Future<String> download(String url) async {
     String externalStorage = (await getExternalStorageDirectory()).path;
-    String songnm = url.replaceAll('http://54.200.143.85:4200/feeds/', '');
+    String songnm = url.replaceAll('https://s3.amazonaws.com/oyeyaaro/', '');
     String dir = '$externalStorage/OyeYaaro/.cache/videofiles';
     if (!Directory(dir).existsSync()) {
       Directory(dir).createSync(recursive: true);

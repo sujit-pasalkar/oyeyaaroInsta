@@ -116,10 +116,10 @@ class _ImagesPageState extends State<ImagesPage> {
     var userPin = (prefs.getString('userPin'));
     final result = await client.post("http://54.200.143.85:4200/getImages",
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"PinCode": '${userPin}'}));
+        body: jsonEncode({"PinCode": '$userPin'}));
 
     res = jsonDecode(result.body);
-    print('in fetch photo res:');
+    print('in fetch photo res: $res');
 
     if (resultFromFilter.length == 0) {
       print('resultFromFilter.type==> : ${resultFromFilter.runtimeType}');
@@ -127,7 +127,6 @@ class _ImagesPageState extends State<ImagesPage> {
     } else {
       //filter res
       print('resultFromFilter.type== : ${resultFromFilter.runtimeType}');
-      // resultFromFilter.
       var arr = await filterResult(res, resultFromFilter);
       return compute(parseUsers, jsonEncode(arr));
     }
@@ -147,7 +146,7 @@ class _ImagesPageState extends State<ImagesPage> {
   Widget bodyMd(snapshot, context) {
     showFilter = true;
     data = snapshot;
-    print('data.....${data}');
+    print('data.....$data');
     return GridView.count(
       padding: EdgeInsets.all(10.0),
       crossAxisSpacing: 8.0,
@@ -158,20 +157,23 @@ class _ImagesPageState extends State<ImagesPage> {
   }
 
   List<Widget> imagesGrid(imagesData, context) {
-    print('-------------------------------------------${imagesData.length}');
+    print('----------------------${imagesData.length}');
     List<Widget> btnlist = List<Widget>();
     for (var i = 0; i < imagesData.length; i++) {
       print('dataList : ${imagesData[i].imageUrl}');
       btnlist.add(
         GestureDetector(
-          onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ShowImage(
-                        url: imagesData[i].imageUrl,
-                      ),
-                ),
+          onTap: () {
+            print('image url : ${imagesData[i].imageUrl}');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ShowImage(
+                      url: imagesData[i].imageUrl,
+                    ),
               ),
+            );
+          },
           child: Container(
             decoration: BoxDecoration(
               color: Colors.black,

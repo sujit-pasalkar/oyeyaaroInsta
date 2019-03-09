@@ -72,23 +72,6 @@ class _VideosPageState extends State<VideosPage> {
             )
           : Center(child: CircularProgressIndicator()),
 
-      // bottomNavigationBar:
-      //       BottomNavigationBar(
-      //     onTap: onTabTapped,
-      //     currentIndex:
-      //         _currentIndex,
-      //     items: [
-      //       BottomNavigationBarItem(
-      //         icon: new Icon(Icons.filter),
-      //         title: new Text('Filter'),
-      //       ),
-      //       BottomNavigationBarItem(
-      //         icon: new Icon(Icons.sort),
-      //         title: new Text('Sort'),
-      //       ),
-      //     ],
-      //   )
-
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xffb00bae3),
         child: Icon(
@@ -112,7 +95,7 @@ class _VideosPageState extends State<VideosPage> {
         MaterialPageRoute(
             builder: (context) =>
                 FilterPage(data: res, resultToFilter: resultFromFilter)));
-    print('pop Result : ${resultFromFilter}');
+    print('pop Result : $resultFromFilter');
     setState(() {
       // this.isLoading = true;
     });
@@ -128,10 +111,10 @@ class _VideosPageState extends State<VideosPage> {
 
     final result = await client.post("http://54.200.143.85:4200/getVideos",
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"PinCode": '${userPin}'}));
+        body: jsonEncode({"PinCode": '$userPin'}));
 
     res = jsonDecode(result.body);
-    print('******Videos data.body :${res}');
+    print('******Videos data.body :$res');
 
     if (resultFromFilter.length == 0) {
       print('resultFromFilter.type==> : ${resultFromFilter.runtimeType}');
@@ -184,7 +167,7 @@ class _VideosPageState extends State<VideosPage> {
               borderRadius: BorderRadius.circular(10.0)),
           child: GestureDetector(
             onTapUp: (TapUpDetails details) {
-              print('videoName::${videoData[i].frameUrl}');
+              print('imageUrl::${videoData[i].frameUrl}');
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -201,7 +184,7 @@ class _VideosPageState extends State<VideosPage> {
                   top: 0.0,
                   bottom: 0.0,
                   child: Icon(
-                    Icons.play_circle_outline,
+                    Icons.play_circle_filled,
                     size: 60,
                     color: Colors.white,
                   ),

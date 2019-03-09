@@ -741,7 +741,10 @@ class ProfilePageState extends State<ProfilePage>
               ? Container(
                   alignment: Alignment.center,
                   color: Colors.black.withOpacity(0.50),
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                              valueColor: new AlwaysStoppedAnimation<Color>(
+                                  Color(0xffb00bae3)),
+                            ),
                 )
               : SizedBox(
                   width: 0.0,

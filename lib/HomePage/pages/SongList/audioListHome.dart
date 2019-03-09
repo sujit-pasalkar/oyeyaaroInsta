@@ -142,7 +142,7 @@ class _AudioListState extends State<AudioList> {
                   decoration: InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Search by Song name...'),
-                      cursorColor: Colors.white,
+                  cursorColor: Colors.white,
                   onChanged: (input) {
                     searchOperation(input);
                   }),
@@ -197,37 +197,37 @@ class _AudioListState extends State<AudioList> {
               // Container(
               //   margin: EdgeInsets.all(22.0),
               //   padding: EdgeInsets.fromLTRB(18.0, 0.0, 0.0, 0.0),
-                // child: Row(
-                  // children: <Widget>[
-                    // Flexible(
-                    //   child: TextField(
-                    //       autofocus: false,
-                    //       controller: _controller,
-                    //       decoration: InputDecoration(
-                    //           border: InputBorder.none,
-                    //           hintText: 'Search by Song name...'),
-                    //       onChanged: (input) {
-                    //         searchOperation(input);
-                    //       }),
-                    // ),
-                    // this.typing
-                    //     ? IconButton(
-                    //         icon: Icon(Icons.close),
-                    //         onPressed: () {
-                    //           setState(() {
-                    //             this.typing = false;
-                    //             this._controller.text = "";
-                    //             print('songs : ${this.songList.length}');
-                    //             this.searchresult = this.songList;
-                    //           });
-                    //         },
-                    //       )
-                    //     : SizedBox(
-                    //         height: 0,
-                    //         width: 0,
-                    //       )
-                  // ],
-                // ),
+              // child: Row(
+              // children: <Widget>[
+              // Flexible(
+              //   child: TextField(
+              //       autofocus: false,
+              //       controller: _controller,
+              //       decoration: InputDecoration(
+              //           border: InputBorder.none,
+              //           hintText: 'Search by Song name...'),
+              //       onChanged: (input) {
+              //         searchOperation(input);
+              //       }),
+              // ),
+              // this.typing
+              //     ? IconButton(
+              //         icon: Icon(Icons.close),
+              //         onPressed: () {
+              //           setState(() {
+              //             this.typing = false;
+              //             this._controller.text = "";
+              //             print('songs : ${this.songList.length}');
+              //             this.searchresult = this.songList;
+              //           });
+              //         },
+              //       )
+              //     : SizedBox(
+              //         height: 0,
+              //         width: 0,
+              //       )
+              // ],
+              // ),
               //   decoration: BoxDecoration(
               //       color: Colors.grey[350],
               //       borderRadius: BorderRadius.circular(50.0)),
@@ -332,7 +332,10 @@ class _AudioListState extends State<AudioList> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            CircularProgressIndicator(),
+                            CircularProgressIndicator(
+                              valueColor: new AlwaysStoppedAnimation<Color>(
+                                  Color(0xffb00bae3)),
+                            ),
                             Padding(
                               padding: EdgeInsets.only(top: 20),
                             ),
@@ -378,23 +381,26 @@ class _AudioListState extends State<AudioList> {
                                       leading: isPlaying &&
                                               searchresult[index] ==
                                                   playingSongName
-                                          // curr_id ==
-                                          // index // contains playing song
                                           ? _position != null &&
                                                   _duration != null
                                               ? IconButton(
                                                   icon: Icon(Icons
-                                                      .pause_circle_outline),
+                                                      .pause_circle_outline,color: Color(0xffb00bae3),),
                                                   iconSize: 40.0,
                                                   color: Colors.black,
                                                   onPressed: () {
                                                     _stop(); //url snapshot.data[index].toString()
                                                   },
                                                 )
-                                              : CircularProgressIndicator()
+                                              : CircularProgressIndicator(
+                                                  valueColor:
+                                                      new AlwaysStoppedAnimation<
+                                                              Color>(
+                                                          Color(0xffb00bae3)),
+                                                )
                                           : IconButton(
                                               icon: Icon(
-                                                  Icons.play_circle_outline),
+                                                  Icons.play_circle_outline,),
                                               iconSize: 40.0,
                                               color: Colors.black,
                                               onPressed: () {
@@ -484,10 +490,10 @@ class _AudioListState extends State<AudioList> {
     var res = jsonDecode(response.body);
     print('Song res: $res');
     setState(() {
-    this.songList = res;
-    this.searchresult = this.songList;
-    this.loading = false;
-    this.loadingMsg = "";
+      this.songList = res;
+      this.searchresult = this.songList;
+      this.loading = false;
+      this.loadingMsg = "";
     });
   }
 

@@ -43,7 +43,9 @@ class _PlayScreenState extends State<PlayScreen> {
       _chewieController.addListener(() {
         if (_controller.value.position.inMilliseconds >=
             _controller.value.duration.inMilliseconds) {
-          Navigator.of(context).pop();
+          // Navigator.of(context).pop(); //shows blank screen
+          _chewieController.pause(); //not working
+          _controller.pause();
         }
       });
 
@@ -75,7 +77,8 @@ class _PlayScreenState extends State<PlayScreen> {
             ? Chewie(
                 controller: _chewieController,
               )
-            : CircularProgressIndicator(),
+            : CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3))),
       ),
     );
   }

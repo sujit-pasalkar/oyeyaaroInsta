@@ -395,7 +395,6 @@ class _LoginPageState extends State<LoginPage> {
         children: <Widget>[
           CircularProgressIndicator(
             valueColor: new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3)),
-            // backgroundColor: Color(0xffb00bae3),
           ),
           Padding(
             padding: EdgeInsets.all(5),

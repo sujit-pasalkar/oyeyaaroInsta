@@ -46,11 +46,11 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
 
   Future<List<String>> listDir() async {
     print(
-        'inlistDir() ...*****************************************:${showShareVideoCheckBox.length}');
-    print('1.DIR *** ${directory}');
+        'inlistDir() : ${showShareVideoCheckBox.length}');
+    print('1.DIR *** $directory');
     List<String> videos = <String>[];
     var exists = await directory.exists();
-    print('2.exist ');
+    print('2.exist: $exists');
 
     if (exists) {
       print('showShareVideoCheckBox::${showShareVideoCheckBox.length}');
@@ -143,7 +143,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
   share() async {
     var platform = const MethodChannel("plmlogix.recordvideo/info");
     for (var video in this.selectedIndexes) {
-      print('share: ${video}');
+      print('share: $video');
       var data = <String, String>{
         'title': 'shareVideo',
         'path': video,
@@ -160,7 +160,23 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
     if (dataList.length != 0) {
       if (dataList[0] == 'empty') {
         return Center(
-          child: Text('${directory.toString()} Path not Exist'),
+          child: Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Icon(
+                Icons.folder,
+                size: 80.0,
+                color: Color(0xffb00bae3),
+              ),
+              Text(
+                'Folder Not Found',
+                style: TextStyle(color: Color(0xffb00bae3)),
+              ),
+            ],
+          ),
+        ),
+          // child: Text('${directory.toString()} Path not Exist'),
         );
       } else {
         return GridView.count(

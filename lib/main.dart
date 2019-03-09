@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import './LoginPage/login.dart';
 import 'package:connect_yaar/ProfilePage/profile.dart';
-import 'HomePage/pages/New_Group/searchGroup.dart';
+// import 'HomePage/pages/New_Group/searchGroup.dart';
 import 'PrivacyPage/privacyPolicy.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return new MaterialApp(
         title: 'Oye Yaaro',
+        debugShowCheckedModeBanner: false,
         home: MainPage(),
         theme: ThemeData(
           brightness: Brightness.light,
@@ -41,7 +42,7 @@ class MyApp extends StatelessWidget {
           '/homepage': (BuildContext context) => HomePage(),
           '/mainpage': (BuildContext context) => MainPage(),
           '/privacypolicy': (BuildContext context) => PrivacyPolicyPage(),
-          '/searchPage': (BuildContext context) => SearchGroupList(),
+          // '/searchPage': (BuildContext context) => SearchGroupList(),
         });
   }
 }
@@ -150,17 +151,13 @@ class _MainPageState extends State<MainPage>
   }
 
   _loadUserState() async {
-    // print('init loadUserState()....');
-    // await currentUser.loadUserDetails();
     // print("in main userLoaded: ${currentUser.userId} , ${currentUser.username} , ${currentUser.groupId} , ${currentUser.collegeName} , ${currentUser.phone} , ${currentUser.email} , ${currentUser.filterActive} ,");
-    
+
     // #check phone no in mobile locale storage
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       this.userPhone = (prefs.getString('userPhone') ?? null);
-      this.userPin = (prefs.getString('userPin') ?? null);
-      // this.userPhone = currentUser.phone;
-      // this.userPin = currentUser.userId;
+      this.userPin = (prefs.getString('userPin') ?? null); 
 
       print('in userPhone: $userPhone');
       print('in userPin: $userPin');

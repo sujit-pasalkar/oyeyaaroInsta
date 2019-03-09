@@ -73,6 +73,7 @@ class ListViewPosts extends StatelessWidget {
                 chatType: 'group',
                 name: this.posts[position].name,
                 groupInfo: this.posts,
+                adminId:this.posts[position].adminId
               ),
         ));
   }

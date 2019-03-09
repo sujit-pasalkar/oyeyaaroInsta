@@ -8,11 +8,11 @@ import 'package:async/async.dart';
 final _DataService dataService = _DataService();
 
 class _DataService {
-  List<String> allAvailableTags;
+  List<dynamic> allAvailableTags;
   Map<String, String> headers;
 
   _DataService() {
-    allAvailableTags = List<String>();
+    allAvailableTags = List<dynamic>();
     headers = Map<String, String>();
   }
 
@@ -22,7 +22,7 @@ class _DataService {
     getAllTags();
   }
 
-  Future<List<String>> getAllTags() async {
+  Future<List<dynamic>> getAllTags() async {
     if (allAvailableTags.length > 0) {
       _getAllTags();
       return allAvailableTags;
@@ -39,12 +39,13 @@ class _DataService {
 
   _getAllTags() async {
     try {
+      print('in _getAllTags()');
       http.Response response = await http.get(
         "http://54.200.143.85:4200/getTags",
         headers: headers,
       );
       if (response.statusCode == 200) {
-        allAvailableTags = jsonDecode(response.body).cast<String>();
+        allAvailableTags = jsonDecode(response.body);
       } else {
         throw 'Error getting a tags:\nHttp status ${response.statusCode}';
       }
@@ -107,4 +108,6 @@ class _DataService {
         await _channel.invokeMethod('downloadFromAmazon', params);
     return File(downloadPath);
   }
+
+ 
 }

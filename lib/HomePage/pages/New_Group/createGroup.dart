@@ -1,3 +1,4 @@
+//rename as searchgroup.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +9,7 @@ import '../../ChatPage/PrivateChatPage/privateChatePage.dart';
 import 'package:share/share.dart';
 import '../../../ProfilePage/profile.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'createNewGroup.dart';
 
 class CreateGroup extends StatefulWidget {
   @override
@@ -22,8 +24,8 @@ class CreateGroupState extends State<CreateGroup> {
 
   //service res
   String val = '';
-  List<dynamic> year = [];
-  List<dynamic> branch = [];
+  List<dynamic> year; // = [];
+  List<dynamic> branch; // = [];
 
 // search related vars
   final globalKey = new GlobalKey<ScaffoldState>();
@@ -59,7 +61,7 @@ class CreateGroupState extends State<CreateGroup> {
     values();
   }
 
-  /* Future<List<StudentData>> */ getStudentList() async {
+  getStudentList() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String userPin = prefs.getString('userPin');
 
@@ -68,10 +70,7 @@ class CreateGroupState extends State<CreateGroup> {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"college": '${this.val}', "userPin": userPin}));
     var res = jsonDecode(response.body);
-    // print("Student list res:********* ${res['data'].runtimeType}");
     this.collegeStudentList = res['data'];
-    // print("collegeStudentList:********* ${this.collegeStudentList}");
-
     setState(() {
       showLoading = false;
     });
@@ -111,9 +110,9 @@ class CreateGroupState extends State<CreateGroup> {
       _check = this.val + " " + _branch + " " + _year;
 
       var body3 = jsonEncode({
-        "clg": "${this.val}",
-        "branch": "${_branch}",
-        "year": "${_year}",
+        "clg": "$this.val",
+        "branch": "$_branch",
+        "year": "$_year",
       });
 
       http
@@ -173,6 +172,24 @@ class CreateGroupState extends State<CreateGroup> {
               ? appBarTitle('Search College')
               : appBarTitle(this.val),
           backgroundColor: Color(0xffb00bae3),
+          actions: <Widget>[
+            this.showStudentSearch
+                ? _menuBuilder()
+                // IconButton(
+                //     icon: Icon(Icons.add),
+                //     onPressed: () {
+                //       Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => CreateNewGroup(val: this.val),
+                //           ));
+                //     },
+                //   )
+                : SizedBox(
+                    height: 0,
+                    width: 0,
+                  )
+          ],
         ),
         body: !showLoading
             ? Column(
@@ -214,7 +231,7 @@ class CreateGroupState extends State<CreateGroup> {
                               this.typing && showStudentSearch
                                   ? IconButton(
                                       icon: Icon(Icons.close),
-                                      tooltip: 'Increase volume by 10%',
+                                      tooltip: 'search',
                                       onPressed: () {
                                         print('close student list');
                                         setState(() {
@@ -264,10 +281,12 @@ class CreateGroupState extends State<CreateGroup> {
                                                 image: new DecorationImage(
                                                   fit: BoxFit.cover,
                                                   image: new NetworkImage(
-                                                      searchresult[index]['ImageNow'].contains('default')
+                                                      searchresult[index]
+                                                                  ['ImageNow']
+                                                              .contains(
+                                                                  'default')
                                                           ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                                          : 
-                                                          "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"
+                                                          : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"
 
                                                       // "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
                                                       ),
@@ -465,7 +484,10 @@ class CreateGroupState extends State<CreateGroup> {
                   // Text("drop else")
                 ],
               )
-            : Center(child: CircularProgressIndicator()));
+            : Center(
+                child: CircularProgressIndicator(
+                    valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3)))));
   }
 
   invite(userPin) {
@@ -542,10 +564,8 @@ class CreateGroupState extends State<CreateGroup> {
         if (this.collegeStudentList[i]['joined']) {
           searchresult.add(this.collegeStudentList[i]);
         } else {
-          // inviteUsersList.add(this.collegeStudentList[i]);
           inviteUsersList.add(this.collegeStudentList[i]);
         }
-        // searchresult.add(this.collegeStudentList[i]);
       }
     }
     searchresult.addAll(inviteUsersList);
@@ -562,20 +582,14 @@ class CreateGroupState extends State<CreateGroup> {
       showSearchGroupDropdown = true;
     });
     var body = jsonEncode({
-      "College": "${value}",
+      "College": "$value",
     });
     http
         .post("http://54.200.143.85:4200/yearAndBatch",
             headers: {"Content-Type": "application/json"}, body: body)
         .then((response) {
-      setState(() {
-        // showLoading = false;
-        // this.openGrpButton = true;
-      });
       var res = jsonDecode(response.body);
-      // print('res: ${res}');
-      // print('PEC Colleges : ${res['data']['Years']}');
-      // print('PEC Streams : ${res['data']['Streams']}');
+      print('res: $res');
       setState(() {
         this.year = res['data']['Years'];
         this.branch = res['data']['Streams'];
@@ -585,4 +599,48 @@ class CreateGroupState extends State<CreateGroup> {
       getStudentList();
     });
   }
+
+  Widget _menuBuilder() {
+    return PopupMenuButton<String>(
+      icon: Icon(
+        Icons.more_vert,
+        color: Colors.white,
+      ),
+      tooltip: "Menu",
+      onSelected: _onMenuItemSelect,
+      itemBuilder: (BuildContext context) => [
+            PopupMenuItem<String>(
+              value: 'Create Group',
+              child: 
+              // Padding(
+                // padding: EdgeInsets.symmetric(horizontal: 5.0),
+                // child: Row(
+                  // children: <Widget>[
+                    Text("Create New Group"),
+                    // Spacer(),
+                    // Icon(Icons.person),
+                  // ],
+                // ),
+              // ),
+            ),
+          ],
+    );
+  }
+
+  _onMenuItemSelect(String option) {
+    switch (option) {
+      case 'Create Group':
+             Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateNewGroup(val: this.val),
+                          ));
+      //   break;
+      // case 'Filters':
+      //   break;
+      // case 'Search':
+      //   break;
+    }
+  }
+
 }

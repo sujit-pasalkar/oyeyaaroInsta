@@ -22,7 +22,7 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
   );
   final key = GlobalKey<ScaffoldState>();
   final TextEditingController _searchQuery = TextEditingController();
-  List<String> _list;
+  List<dynamic> _list;
   bool _isSearching;
   String _searchText = "";
 
@@ -42,9 +42,10 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
     });
   }
 
+
   @override
   void initState() {
-    _list = List<String>();
+    _list = List<dynamic>();
     _loading = false;
     _isSearching = false;
     dataService.getAllTags().then((list) {
@@ -103,9 +104,9 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
     if (_searchText.isEmpty) {
       return _list.map((contact) => ChildItem(contact)).toList();
     } else {
-      List<String> _searchList = List();
+      List<dynamic> _searchList = List();
       for (int i = 0; i < _list.length; i++) {
-        String name = _list.elementAt(i);
+        String name = _list.elementAt(i)['tag'];
         if (name.toLowerCase().contains(_searchText.toLowerCase())) {
           _searchList.add(name);
         }
@@ -115,34 +116,38 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
   }
 
   Widget buildBar(BuildContext context) {
-    return AppBar(centerTitle: false, title: appBarTitle, actions: <Widget>[
-      IconButton(
-        icon: actionIcon,
-        onPressed: () {
-          setState(() {
-            if (this.actionIcon.icon == Icons.search) {
-              this.actionIcon = Icon(
-                Icons.close,
-                color: Colors.white,
-              );
-              this.appBarTitle = TextField(
-                controller: _searchQuery,
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-                decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.search, color: Colors.white),
-                    hintText: "Search...",
-                    hintStyle: TextStyle(color: Colors.white)),
-              );
-              _handleSearchStart();
-            } else {
-              _handleSearchEnd();
-            }
-          });
-        },
-      ),
-    ]);
+    return AppBar(
+        centerTitle: false,
+        title: appBarTitle,
+        backgroundColor: Color(0xffb00bae3),
+        actions: <Widget>[
+          IconButton(
+            icon: actionIcon,
+            onPressed: () {
+              setState(() {
+                if (this.actionIcon.icon == Icons.search) {
+                  this.actionIcon = Icon(
+                    Icons.close,
+                    color: Colors.white,
+                  );
+                  this.appBarTitle = TextField(
+                    controller: _searchQuery,
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.search, color: Colors.white),
+                        hintText: "Search...",
+                        hintStyle: TextStyle(color: Colors.white)),
+                  );
+                  _handleSearchStart();
+                } else {
+                  _handleSearchEnd();
+                }
+              });
+            },
+          ),
+        ]);
   }
 
   void _handleSearchStart() {
@@ -168,12 +173,25 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
 }
 
 class ChildItem extends StatelessWidget {
-  final String name;
-  ChildItem(this.name);
+  final Map<String, dynamic> tag;
+  ChildItem(this.tag);
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text("#" + name),
+      title: Text("#" + tag['tag']),
+      trailing: Container(
+        height: 30,
+        width: 30,
+        decoration: BoxDecoration(
+          color: Color(0xffb00bae3),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment(0.0, 0.0),
+        child: Text(
+          tag['count'].toString(),
+          style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),
+        ),
+      ),
       onTap: () => _showResult(context),
     );
   }
@@ -182,7 +200,7 @@ class ChildItem extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FeedByTag(tag: name),
+        builder: (context) => FeedByTag(tag: tag['tag']),
       ),
     );
   }

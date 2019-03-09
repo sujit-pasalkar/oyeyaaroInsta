@@ -88,6 +88,7 @@ class _FeedBuilder extends State<FeedBuilder> {
 
   bool liked;
   bool showHeart = false;
+  bool _processing = false;
 
   CollectionReference reference = Firestore.instance.collection('insta_posts');
 
@@ -233,43 +234,48 @@ class _FeedBuilder extends State<FeedBuilder> {
   }
 
   _likePost() async {
-    String userId = currentUser.userId;
+    if (!_processing) {
+      _processing = true;
+      String userId = currentUser.userId;
 
-    bool _liked = likes[userId] == true;
+      bool _liked = likes[userId] == true;
 
-    if (_liked) {
-      await reference.document(postId).updateData({
-        'likes.$userId': false,
-      });
-
-      setState(() {
-        likeCount = likeCount - 1;
-        liked = false;
-        likes[userId] = false;
-      });
-      removeActivityFeedItem();
-    } else if (!_liked) {
-      await reference.document(postId).updateData({'likes.$userId': true});
-      addActivityFeedItem();
-      setState(() {
-        likeCount = likeCount + 1;
-        liked = true;
-        likes[userId] = true;
-        showHeart = true;
-      });
-      Timer(const Duration(milliseconds: 500), () {
-        setState(() {
-          showHeart = false;
+      if (_liked) {
+        await reference.document(postId).updateData({
+          'likes.$userId': false,
         });
-      });
+        await removeActivityFeedItem();
+        _processing = false;
+
+        setState(() {
+          likeCount = likeCount - 1;
+          liked = false;
+          likes[userId] = false;
+        });
+      } else if (!_liked) {
+        await reference.document(postId).updateData({'likes.$userId': true});
+        await addActivityFeedItem();
+        setState(() {
+          likeCount = likeCount + 1;
+          liked = true;
+          likes[userId] = true;
+          showHeart = true;
+        });
+        _processing = false;
+        Timer(const Duration(milliseconds: 500), () {
+          setState(() {
+            showHeart = false;
+          });
+        });
+      }
     }
   }
 
-  addActivityFeedItem() {
+  addActivityFeedItem() async {
     String userId = currentUser.userId;
     String username = currentUser.username;
     String photoUrl = currentUser.photoURL;
-    Firestore.instance
+    await Firestore.instance
         .collection("insta_a_feed")
         .document(ownerId)
         .collection("items")
@@ -285,8 +291,8 @@ class _FeedBuilder extends State<FeedBuilder> {
     });
   }
 
-  removeActivityFeedItem() {
-    Firestore.instance
+  removeActivityFeedItem() async {
+    await Firestore.instance
         .collection("insta_a_feed")
         .document(ownerId)
         .collection("items")

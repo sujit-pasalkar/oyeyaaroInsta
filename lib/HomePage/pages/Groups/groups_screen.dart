@@ -40,7 +40,8 @@ class GroupScreenStateState extends State<GroupScreenState> {
                   posts: snapshot.data,
                   hideButtonController: widget.hideButtonController,
                 )
-              : Center(child: CircularProgressIndicator());
+              : Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3))));
         },
       ),
       floatingActionButton: new FloatingActionButton(
@@ -52,10 +53,6 @@ class GroupScreenStateState extends State<GroupScreenState> {
           fit: BoxFit.scaleDown,
           alignment: Alignment.center,
         ),
-        //  Icon(
-        //   Icons.search,
-        //   color: Colors.white,
-        // ),
         onPressed: () {
           Navigator.push(
             context,
