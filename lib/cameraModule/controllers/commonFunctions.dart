@@ -35,6 +35,7 @@ class CommonFunctions {
   }
 
   Future<String> mergeAudio(String videoFilename, String audioFilename) async {
+    String tempPath = (await getTemporaryDirectory()).path;
     File a = new File(videoFilename);
     String basename = path.basename(a.path);
     String dir = (await getApplicationDocumentsDirectory()).path;
@@ -46,12 +47,29 @@ class CommonFunctions {
       f.copySync(processedfilename);
       return processedfilename;
     }
+    if (new File('$videoFilename').existsSync()) {
+      print("videoFilename is present ");
+    }
     await _flutterFFmpeg
         .execute(
-            '-y -i $videoFilename -i $audioFilename -c copy -shortest $processedfilename')
+            '-y -i $videoFilename -i $audioFilename -c copy -an $tempPath/$basename')
         .then((rc) => print("FFmpeg process exited with rc $rc"));
+    if (new File('$tempPath/$basename').existsSync()) {
+      print("basename is present ");
+    }
+    await _flutterFFmpeg
+        .execute(
+            '-y -i $tempPath/$basename -i $audioFilename -acodec aac -vcodec copy $processedfilename')
+        .then((rc) => print("FFmpeg process exited with rc $rc"));
+
+    if (new File('$processedfilename').existsSync()) {
+      print("processedfilename is present ");
+    }
+    File aa = new File('$tempPath/$basename');
+    aa.deleteSync();
+    a.deleteSync();
     return processedfilename;
-  } //-qscale 0
+  } //-qscale 0 -c copy -shortest
 
   Future<String> moveProcessedFile(String videoFilename) async {
     File f = new File(videoFilename);
@@ -62,7 +80,7 @@ class CommonFunctions {
     String finalfilepath = '$dir/OyeYaaro/Videos/$fname';
     File ss = new File(finalfilepath);
     if (!Directory(finaldir).existsSync()) {
-      Directory(dir).createSync(recursive: true);
+      Directory(finaldir).createSync(recursive: true);
     }
     f.copySync(finalfilepath);
     await createThimbnail(finalfilepath, fnamewoext);

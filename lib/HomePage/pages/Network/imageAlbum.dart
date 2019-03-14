@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 import '../showImage.dart';
 import './filter.dart';
 
@@ -33,8 +33,9 @@ List<ImagesData> parseUsers(String responseBody) {
 
 class ImagesPage extends StatefulWidget {
   final ScrollController hideButtonController;
+  final String dialogId; 
 
-  ImagesPage({@required this.hideButtonController});
+  ImagesPage({@required this.hideButtonController,@required this.dialogId});
   @override
   _ImagesPageState createState() => _ImagesPageState();
 }
@@ -50,11 +51,13 @@ class _ImagesPageState extends State<ImagesPage> {
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
-  void initState() {}
+  void initState() {
+    fetchImgForFilter();
+  }
 
   @override
   void dispose() {
-    // super.dispose();
+    super.dispose();
   }
 
   @override
@@ -63,15 +66,17 @@ class _ImagesPageState extends State<ImagesPage> {
       key: scaffoldKey,
       body: !isLoading
           ? FutureBuilder<List<ImagesData>>(
-              future: fetchImages(http.Client()),
+              future: fetchImages(http.Client(),widget.dialogId),
               builder: (context, snapshot) {
                 if (snapshot.hasError) print(snapshot.error);
                 return snapshot.hasData
                     ? bodyMd(snapshot.data, context)
-                    : Center(child: CircularProgressIndicator());
+                    : Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3))));
               },
             )
-          : Center(child: CircularProgressIndicator()),
+          : Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3)))),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xffb00bae3),
         child: Icon(
@@ -80,9 +85,10 @@ class _ImagesPageState extends State<ImagesPage> {
           size: 25.0,
         ),
         // Text('Filters'),
-        onPressed: () {
-          onTabTapped();
-        },
+        onPressed: showFilter ? () {
+          onTabTapped() ;
+        }:
+        null
       ),
     );
   }
@@ -96,7 +102,7 @@ class _ImagesPageState extends State<ImagesPage> {
         MaterialPageRoute(
             builder: (context) =>
                 FilterPage(data: res, resultToFilter: resultFromFilter)));
-    print('pop Result : ${resultFromFilter}');
+    print('pop Result : $resultFromFilter');
     setState(() {
       // this.isLoading = true;
     });
@@ -110,17 +116,26 @@ class _ImagesPageState extends State<ImagesPage> {
     //   _currentIndex = index;
     // });
   }
+  
+  fetchImgForFilter()async{
+    http.Response response = await http.post("http://54.200.143.85:4200/getImages",
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"dialog_id": '${widget.dialogId}'}));
+        res = jsonDecode(response.body);
+        print('in fetch photo res for filter: $res');
+        setState(() {
+         showFilter = true; 
+        });
+  }
 
-  Future<List<ImagesData>> fetchImages(http.Client client) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var userPin = (prefs.getString('userPin'));
+  Future<List<ImagesData>> fetchImages(http.Client client,dialogId) async {
     final result = await client.post("http://54.200.143.85:4200/getImages",
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"PinCode": '$userPin'}));
+        body: jsonEncode({"dialog_id": '$dialogId'}));
 
     res = jsonDecode(result.body);
     print('in fetch photo res: $res');
-
+  showFilter = true;
     if (resultFromFilter.length == 0) {
       print('resultFromFilter.type==> : ${resultFromFilter.runtimeType}');
       return compute(parseUsers, jsonEncode(res));
@@ -139,7 +154,6 @@ class _ImagesPageState extends State<ImagesPage> {
         newList.add(res[i]);
       }
     }
-
     return newList;
   }
 
@@ -147,7 +161,23 @@ class _ImagesPageState extends State<ImagesPage> {
     showFilter = true;
     data = snapshot;
     print('data.....$data');
-    return GridView.count(
+    return
+    data.length == 0 ?
+    Center(
+      child:Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+           Icon(
+          Icons.image,
+          color: Color(0xffb00bae3),
+          size: 95.0,
+        ),
+          Text('Empty Album',style: TextStyle(color: Color(0xffb00bae3),fontSize: 18),)
+        ],
+      )
+    )
+    :
+    GridView.count(
       padding: EdgeInsets.all(10.0),
       crossAxisSpacing: 8.0,
       crossAxisCount: 2,

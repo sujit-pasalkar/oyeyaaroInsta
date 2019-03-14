@@ -36,6 +36,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
 
   //share video to group
   List<String> selectedIndexes = [];
+  List<String> allVideos = [];
 
   @override
   void initState() {
@@ -45,8 +46,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
   }
 
   Future<List<String>> listDir() async {
-    print(
-        'inlistDir() : ${showShareVideoCheckBox.length}');
+    print('inlistDir() : ${showShareVideoCheckBox.length}');
     print('1.DIR *** $directory');
     List<String> videos = <String>[];
     var exists = await directory.exists();
@@ -84,6 +84,37 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
           : AppBar(
               title: Text("Oye Yaaro"),
               actions: <Widget>[
+                selectedIndexes.length > 0 &&
+                        selectedIndexes.length < allVideos.length
+                    ? IconButton(
+                        icon: Icon(Icons.radio_button_unchecked),
+                        onPressed: () {
+                          print('check all videos : ${allVideos.length}');
+                          setState(() {
+                            selectedIndexes = [];
+                            for (var i = 0; i < allVideos.length; i++) {
+                              // selectedIndexes[i] = allVideos[i];
+                              selectedIndexes.add(allVideos[i]);
+                               showShareVideoCheckBox[i] = true;
+                            }
+                          });
+                        },
+                      )
+                    : IconButton(
+                        icon: Icon(Icons.check_circle),
+                        onPressed: () {
+                          print(
+                              'uncheck all videos: ${showShareVideoCheckBox.length} ,${allVideos.length}');
+                          for (var i = 0;
+                              i < this.showShareVideoCheckBox.length;
+                              i++) {
+                            this.showShareVideoCheckBox[i] = false;
+                          }
+                          setState(() {
+                            this.selectedIndexes.clear();
+                          });
+                        },
+                      ),
                 IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () {
@@ -118,7 +149,10 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                   return Text("Error => ${snapshot.error}");
                 return snapshot.hasData
                     ? body(snapshot.data)
-                    : Center(child: CircularProgressIndicator());
+                    : Center(child: CircularProgressIndicator(
+                      valueColor: new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xffb00bae3)),
+                    ));
               },
             ),
           ),
@@ -157,26 +191,26 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
   }
 
   Widget body(dataList) {
+    print('dataList type : ${dataList.runtimeType}');
     if (dataList.length != 0) {
       if (dataList[0] == 'empty') {
         return Center(
           child: Container(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(
-                Icons.folder,
-                size: 80.0,
-                color: Color(0xffb00bae3),
-              ),
-              Text(
-                'Folder Not Found',
-                style: TextStyle(color: Color(0xffb00bae3)),
-              ),
-            ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(
+                  Icons.folder,
+                  size: 80.0,
+                  color: Color(0xffb00bae3),
+                ),
+                Text(
+                  'Folder Not Found',
+                  style: TextStyle(color: Color(0xffb00bae3)),
+                ),
+              ],
+            ),
           ),
-        ),
-          // child: Text('${directory.toString()} Path not Exist'),
         );
       } else {
         return GridView.count(
@@ -217,7 +251,12 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
         GestureDetector(
           onLongPress: this.showShareVideoCheckBox[i] != true
               ? () {
-                  print('adding : ${i}, ${dataList[i]}');
+                  print('adding : $i, ${dataList[i]}');
+                  setState(() {
+                    allVideos = dataList;
+                  });
+                  print('allVideosCount : ${allVideos.length}');
+                  print('datalist : $dataList');
                   addToSelectedIndexes(dataList[i], i);
                 }
               : () {
@@ -246,20 +285,25 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                     },
           child: Container(
             margin: EdgeInsets.only(bottom: 8.0),
-            decoration: BoxDecoration(
-                color: Colors.black,
-                image: DecorationImage(
-                  image: FileImage(
-                    File('/storage/emulated/0/OyeYaaro/Thumbnails/' +
-                        (dataList[i].toString().split("/").last)
-                            .replaceAll('mp4', 'png')),
-                  ),
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.circular(10.0)),
             child: GestureDetector(
               child: Stack(
                 children: <Widget>[
+                  Container(
+                    decoration: BoxDecoration(
+                        border: new Border.all(
+                          color: Colors.indigo[50],
+                          width: showShareVideoCheckBox[i] == true ? 10 : 0,
+                        ),
+                        image: DecorationImage(
+                          image: FileImage(
+                            File('/storage/emulated/0/OyeYaaro/Thumbnails/' +
+                                (dataList[i].toString().split("/").last)
+                                    .replaceAll('mp4', 'png')),
+                          ),
+                          fit: BoxFit.cover,
+                        ),
+                        borderRadius: BorderRadius.circular(10.0)),
+                  ),
                   Positioned(
                     left: 0.0,
                     right: 0.0,
@@ -272,11 +316,15 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                     ),
                   ),
                   Positioned(
-                      right: 0.0,
-                      top: 0.0,
-                      child: showShareVideoCheckBox[i] == true
-                          ? Icon(Icons.check_circle, color: Colors.white)
-                          : Text(""))
+                    right: 0.0,
+                    top: 0.0,
+                    child: showShareVideoCheckBox[i] == true
+                        ? Icon(Icons.check_circle, color: Color(0xffb00bae3))
+                        : SizedBox(
+                            height: 0,
+                            width: 0,
+                          ),
+                  )
                 ],
               ),
             ),
@@ -318,7 +366,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
 
     setState(() {
       this.selectedIndexes = [];
-      print('after rm : ${selectedIndexes}');
+      print('after rm : $selectedIndexes');
     });
   }
 
@@ -357,7 +405,8 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                               child: groupListView(
                               snapshot.data, /* video, i */
                             ))
-                          : Center(child: CircularProgressIndicator());
+                          : Center(child: CircularProgressIndicator( valueColor: new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xffb00bae3)),));
                     },
                   )
                 ],
@@ -498,8 +547,8 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
     }
 
     setState(() {
-      this.selectedIndexes = [];
-      print('after rm : ${selectedIndexes}');
+      this.selectedIndexes.clear();// = [];
+      print('after rm : $selectedIndexes');
     });
   }
 

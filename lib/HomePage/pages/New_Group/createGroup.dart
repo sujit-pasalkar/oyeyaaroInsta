@@ -76,18 +76,16 @@ class CreateGroupState extends State<CreateGroup> {
     });
   }
 
-  void values() {
-    //now  colleges added manually when multiple colleged added in db use new service
+  void values() async{
     collegelist = List();
+    //call getCollegeList Service
     collegelist.addAll([
       "PEC",
-    ]); //"MIT", "Pune", "PICTE", "Pune", "COEP", "Pune", "PEC,punjab"
+    ]);
 
     for (int i = 0; i < collegelist.length; i++) {
       String data = collegelist[i];
-      // if (data.toLowerCase().contains(searchText.toLowerCase())) {
       searchresultforClg.add(data);
-      // }
     }
   }
 
@@ -173,22 +171,12 @@ class CreateGroupState extends State<CreateGroup> {
               : appBarTitle(this.val),
           backgroundColor: Color(0xffb00bae3),
           actions: <Widget>[
-            this.showStudentSearch
-                ? _menuBuilder()
-                // IconButton(
-                //     icon: Icon(Icons.add),
-                //     onPressed: () {
-                //       Navigator.push(
-                //           context,
-                //           MaterialPageRoute(
-                //             builder: (context) => CreateNewGroup(val: this.val),
-                //           ));
-                //     },
-                //   )
-                : SizedBox(
-                    height: 0,
-                    width: 0,
-                  )
+            // this.showStudentSearch
+            //     ? _menuBuilder()
+            //     : SizedBox(
+            //         height: 0,
+            //         width: 0,
+            //       )
           ],
         ),
         body: !showLoading
@@ -611,17 +599,7 @@ class CreateGroupState extends State<CreateGroup> {
       itemBuilder: (BuildContext context) => [
             PopupMenuItem<String>(
               value: 'Create Group',
-              child: 
-              // Padding(
-                // padding: EdgeInsets.symmetric(horizontal: 5.0),
-                // child: Row(
-                  // children: <Widget>[
-                    Text("Create New Group"),
-                    // Spacer(),
-                    // Icon(Icons.person),
-                  // ],
-                // ),
-              // ),
+              child: Text("Create New Group"),
             ),
           ],
     );
@@ -630,11 +608,11 @@ class CreateGroupState extends State<CreateGroup> {
   _onMenuItemSelect(String option) {
     switch (option) {
       case 'Create Group':
-             Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CreateNewGroup(val: this.val),
-                          ));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateNewGroup(),
+            ));
       //   break;
       // case 'Filters':
       //   break;
@@ -642,5 +620,4 @@ class CreateGroupState extends State<CreateGroup> {
       //   break;
     }
   }
-
 }

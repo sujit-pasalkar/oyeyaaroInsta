@@ -135,15 +135,6 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                     child: new CameraPreview(controller)),
               ),
             ),
-            // Align(
-            //   alignment: Alignment.centerRight,
-            //   child: new Countdown(
-            //     animation: new StepTween(
-            //       begin: kStartValue,
-            //       end: kEndValue,
-            //     ).animate(_controller),
-            //   ),
-            // ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -159,9 +150,11 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                          onTap: () {
+                          onTap:allowDeactivate ? () {
                             _navigateAndDisplaySelection(context);
-                          },
+                          }
+                          :
+                          null,
                           child: Container(
                             padding: EdgeInsets.all(4.0),
                             child: Icon(

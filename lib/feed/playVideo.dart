@@ -18,7 +18,7 @@ class _PlayScreenState extends State<PlayVideo> {
   VideoPlayerController _controller;
   ChewieController _chewieController;
   VoidCallback listener;
-  double aspect = 1.0;
+  double aspect;// = 1.0;
 
   bool showVideo = false;
 
@@ -32,6 +32,7 @@ class _PlayScreenState extends State<PlayVideo> {
   void dispose() {
     _controller.dispose();
     _chewieController.dispose();
+    // _chewieController.or
     super.dispose();
   }
 
@@ -41,11 +42,11 @@ class _PlayScreenState extends State<PlayVideo> {
     _controller = VideoPlayerController.file(File(url));
 
     _controller.initialize().then((onValue) {
-      aspect = _controller.value.aspectRatio;
+      aspect = aspect;//_controller.value.aspectRatio;
       _chewieController = ChewieController(
         videoPlayerController: _controller,
         aspectRatio: aspect,
-        autoPlay: true,
+        // autoPlay: true,
         looping: false,
       );
 
@@ -64,14 +65,12 @@ class _PlayScreenState extends State<PlayVideo> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: new AppBar(
-        title: new Text(
-          'Video',
-          style: TextStyle(fontSize: 22.0),
-        ),
-        backgroundColor: Color(0xffb00bae3),
-      ),
+    MediaQueryData queryData;
+      queryData = MediaQuery.of(context);
+      aspect = 
+      queryData.size.width/queryData.size.height;
+    return new MaterialApp(
+     home:Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: showVideo
@@ -80,7 +79,7 @@ class _PlayScreenState extends State<PlayVideo> {
               )
             : CircularProgressIndicator(),
       ),
-    );
+    ),);
   }
 
   Future<String> download(String url) async {

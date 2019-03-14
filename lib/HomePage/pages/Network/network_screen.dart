@@ -6,8 +6,9 @@ import '../../../models/user.dart';
 
 class NetworkScreen extends StatefulWidget {
   final ScrollController hideButtonController;
+  final  String dialogId ;
 
-  NetworkScreen({@required this.hideButtonController, Key key}) : super(key: key);
+  NetworkScreen({@required this.hideButtonController, @required this.dialogId, key}) : super(key: key);
 
   @override
   _NetworkScreenState createState() => _NetworkScreenState();
@@ -50,8 +51,8 @@ class _NetworkScreenState extends State<NetworkScreen>
       body: TabBarView(
         controller: _tabController,
         children: <Widget>[
-          ImagesPage(hideButtonController: widget.hideButtonController),
-          VideosPage(hideButtonController: widget.hideButtonController),
+          ImagesPage(hideButtonController: widget.hideButtonController,dialogId:widget.dialogId),
+          VideosPage(hideButtonController: widget.hideButtonController,dialogId:widget.dialogId),
         ],
       ),
     );

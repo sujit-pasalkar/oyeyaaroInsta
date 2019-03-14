@@ -4,8 +4,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:connect_yaar/home.dart';
 
 class CreateNewGroup extends StatefulWidget {
-  final val;
-  CreateNewGroup({@required this.val});
+  // final val;
+  // CreateNewGroup({@required this.val});
 
   @override
   _CreateNewGroupState createState() => _CreateNewGroupState();
@@ -28,12 +28,12 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
   @override
   void initState() {
     super.initState();
-    print('${widget.val}');
+    // print('${widget.val}');
     getStudent();
   }
 
   getStudent() async {
-    collegeStudentList = await createNewGroup.getStudentList(widget.val);
+    collegeStudentList = await createNewGroup.getStudentList();
     print('collegeStudentList : $collegeStudentList');
     setState(() {
       searchresult = collegeStudentList;
@@ -333,7 +333,7 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
                       Fluttertoast.showToast(
                           msg: "Group ${_controllerGroupName.text} Created");
                       Navigator.of(context).pop();
-                      Navigator.of(context).pop();
+                      // Navigator.of(context).pop();
                       // Navigator.pushReplacement(
                       //   context,
                       //   MaterialPageRoute(

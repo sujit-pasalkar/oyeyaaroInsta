@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'groupsList.dart';
 import '../New_Group/createGroup.dart';
 import '../../../ProfilePage/profile.dart';
-import '../Network/network_screen.dart';
+import '../New_Group/createNewGroup.dart';
 
 class GroupScreenState extends StatefulWidget {
   final ScrollController hideButtonController;
@@ -88,14 +88,14 @@ class GroupScreenStateState extends State<GroupScreenState> {
               ),
             ),
             PopupMenuItem<String>(
-              value: 'Albums',
+              value: 'Create New Group',
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 5.0),
                 child: Row(
                   children: <Widget>[
-                    Text("Albums"),
+                    Text("Create New Group"),
                     Spacer(),
-                    Icon(Icons.local_movies),
+                    Icon(Icons.group_add),
                   ],
                 ),
               ),
@@ -116,13 +116,15 @@ class GroupScreenStateState extends State<GroupScreenState> {
           ),
         );
         break;
-      case 'Albums':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NetworkScreen(hideButtonController: widget.hideButtonController,),
-          ),
-        );
+        case 'Create New Group':
+        {
+          print('create grp');
+           Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateNewGroup(),
+            ));
+        }
         break;
     }
   }

@@ -151,7 +151,8 @@ class _AudioListState extends State<AudioList> {
                       });
                 } else {
                   print('no data found');
-                  return Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3))));
                 }
               }),
     );

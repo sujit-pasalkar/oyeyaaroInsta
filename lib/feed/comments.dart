@@ -111,9 +111,9 @@ class _CommentsState extends State<Comments> {
     return comments;
   }
 
-  addComment(String comment) {
+  addComment(String comment) async {
     _commentController.clear();
-    Firestore.instance
+    await Firestore.instance
         .collection("insta_comments")
         .document(postId)
         .collection("comments")
@@ -124,8 +124,8 @@ class _CommentsState extends State<Comments> {
       "avatarUrl": currentUser.photoURL,
       "userId": currentUser.userId
     });
+    setState(() {});
 
-    //adds to postOwner's activity feed
     Firestore.instance
         .collection("insta_a_feed")
         .document(postOwner)

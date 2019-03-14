@@ -111,9 +111,9 @@ class ChatPrivateState extends State<ChatPrivate> {
   Duration duration;
   Duration position;
   // get songisPlaying => playerState == PlayerState.playing;
-  get isPaused => playerState == PlayerState.paused;
-  get durationText => duration?.toString()?.split('.')?.first ?? '';
-  get positionText => position?.toString()?.split('.')?.first ?? '';
+  // get isPaused => playerState == PlayerState.paused;
+  // get durationText => duration?.toString()?.split('.')?.first ?? '';
+  // get positionText => position?.toString()?.split('.')?.first ?? '';
   String playingSongInList;
 
   final TextEditingController textEditingController =
@@ -321,7 +321,8 @@ class ChatPrivateState extends State<ChatPrivate> {
 
     try {
       compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
-      print('got compressedVideoUrl from platform method:  $compressedVideoUrl');
+      print(
+          'got compressedVideoUrl from platform method:  $compressedVideoUrl');
     } catch (e) {
       print('error while compressing:$e');
     }
@@ -1904,8 +1905,7 @@ class ChatPrivateState extends State<ChatPrivate> {
               ],
               backgroundColor: Color(0xffb00bae3),
             ),
-      body:
-          Stack(
+      body: Stack(
         children: <Widget>[
           Column(
             children: <Widget>[
@@ -1953,8 +1953,17 @@ class ChatPrivateState extends State<ChatPrivate> {
                     Padding(
                       padding: EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
                     ),
-                    playPauseIcon(listData) //isPlaying
-                        ? Icon(Icons.pause_circle_outline)
+                    playPauseIcon(listData) 
+                    ? position != null && duration != null
+                          ? Icon(Icons.pause_circle_outline)
+                          : SizedBox(
+                              child: new CircularProgressIndicator(
+                                  valueColor: new AlwaysStoppedAnimation(
+                                      Color(0xffb00bae3)),
+                                  strokeWidth: 1.0),
+                              height: 20.0,
+                              width: 20.0,
+                            )
                         : Image.asset('assets/short.png',
                             width: 25.0, height: 25.0),
                     Padding(
@@ -2015,9 +2024,17 @@ class ChatPrivateState extends State<ChatPrivate> {
                   Padding(
                     padding: EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
                   ),
-                  // Icon(Icons.music_note),
-                  playPauseIcon(listData) //isPlaying
-                      ? Icon(Icons.pause_circle_outline)
+                  playPauseIcon(listData)
+                      ? position != null && duration != null
+                          ? Icon(Icons.pause_circle_outline)
+                          : SizedBox(
+                              child: new CircularProgressIndicator(
+                                  valueColor: new AlwaysStoppedAnimation(
+                                      Color(0xffb00bae3)),
+                                  strokeWidth: 1.0),
+                              height: 20.0,
+                              width: 20.0,
+                            )
                       : Icon(Icons.music_note),
                   Text(
                     listData.replaceAll('.mp3', ''),
@@ -2080,7 +2097,11 @@ class ChatPrivateState extends State<ChatPrivate> {
 
   //song play stop pause
   Future<int> play(url, songName) async {
-    print('in play():${songName}');
+    print('in play():$songName');
+    setState(() {
+      position = null;
+      duration = null;
+    });
     final result = await audioPlayer.play(url, isLocal: false);
     if (result == 1)
       setState(() {
@@ -2119,8 +2140,8 @@ class ChatPrivateState extends State<ChatPrivate> {
           ? Container(
               child: Center(
                 child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))
-                    ),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))),
               ),
               color: Colors.white.withOpacity(0.8),
             )
@@ -2136,7 +2157,6 @@ class ChatPrivateState extends State<ChatPrivate> {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    // Button send image
                     Material(
                       child: new Container(
                         margin: new EdgeInsets.symmetric(horizontal: 1.0),
@@ -2183,19 +2203,12 @@ class ChatPrivateState extends State<ChatPrivate> {
                     ),
                   ],
                 )
-              : Text(''),
+              : SizedBox(
+                  height: 0,
+                  width: 0,
+                ),
           Row(
             children: <Widget>[
-              // new Container(
-              //   child: new IconButton(
-              //     icon: new Icon(Icons.image),
-              //     onPressed:
-              //         // openOptions(),
-              //         openBottomSheet(),
-              //     color: primaryColor,
-              //   ),
-              // ),
-              // Button send image
               Padding(
                 padding: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
               ),
@@ -2205,7 +2218,6 @@ class ChatPrivateState extends State<ChatPrivate> {
                       color: greyColor2,
                       borderRadius: BorderRadius.circular(50.0)),
                   padding: EdgeInsets.all(15.0),
-                  // margin: EdgeInsets.all(1.0),
                   child: GestureDetector(
                     child: TextField(
                       textCapitalization: TextCapitalization.sentences,
@@ -2215,20 +2227,28 @@ class ChatPrivateState extends State<ChatPrivate> {
                         hintText: 'Type your message...',
                         hintStyle: TextStyle(color: greyColor),
                       ),
-                      onChanged: searchOperation,
-                      // focusNode: focusNode,
+                      onChanged: (input) {
+                        print(input.length);
+                        if (input.length >= 1) {
+                          setState(() {
+                            this.isSearching = true;
+                          });
+                          searchOperation(input);
+                        } else {
+                          stop();
+                        }
+                      },
                       onTap: () {
                         print('ontapp.');
-                        this.isSearching = true;
-                        searchOperation('a');
+                        setState(() {
+                          this.isSearching = true;
+                        });
+                        searchOperation('');
                       },
                     ),
                   ),
                 ),
               ),
-              // Button send message
-              // Material(
-              // child:
               Container(
                 decoration: BoxDecoration(
                     color: Color(0xffb00bae3),

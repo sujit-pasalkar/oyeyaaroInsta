@@ -194,137 +194,108 @@ class _AudioListState extends State<AudioList> {
         body: Stack(
           children: <Widget>[
             Column(children: <Widget>[
-              // Container(
-              //   margin: EdgeInsets.all(22.0),
-              //   padding: EdgeInsets.fromLTRB(18.0, 0.0, 0.0, 0.0),
-              // child: Row(
-              // children: <Widget>[
-              // Flexible(
-              //   child: TextField(
-              //       autofocus: false,
-              //       controller: _controller,
-              //       decoration: InputDecoration(
-              //           border: InputBorder.none,
-              //           hintText: 'Search by Song name...'),
-              //       onChanged: (input) {
-              //         searchOperation(input);
-              //       }),
-              // ),
-              // this.typing
-              //     ? IconButton(
-              //         icon: Icon(Icons.close),
-              //         onPressed: () {
-              //           setState(() {
-              //             this.typing = false;
-              //             this._controller.text = "";
-              //             print('songs : ${this.songList.length}');
-              //             this.searchresult = this.songList;
-              //           });
-              //         },
-              //       )
-              //     : SizedBox(
-              //         height: 0,
-              //         width: 0,
-              //       )
-              // ],
-              // ),
-              //   decoration: BoxDecoration(
-              //       color: Colors.grey[350],
-              //       borderRadius: BorderRadius.circular(50.0)),
-              // ),
-              // Divider(height: 5.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  FlatButton.icon(
-                    // color: Color(0xffb00bae3),
-                    icon: !playAll
-                        ? Icon(
-                            Icons.repeat,
-                            color: Colors.grey,
-                          )
-                        : Icon(
-                            Icons.pause_circle_outline,
-                            color: Color(0xffb00bae3),
-                          ),
-                    label: !playAll
-                        ? Text('Play All',
-                            style:
-                                TextStyle(color: Colors.grey, fontSize: 16.0))
-                        : Text('Stop',
-                            style: TextStyle(
-                                color: Color(0xffb00bae3), fontSize: 16.0)),
-                    onPressed: () {
-                      setState(() {
-                        playAll = !playAll;
-                      });
-                      if (playAll) {
-                        if (checkedSongs.length > 0) {
-                          if (shuffleSongs) {
-                            print('$checkedSongs');
-                            var shuffledSong = (checkedSongs..shuffle()).first;
-                            print(
-                                'suffled songs : $shuffledSong and index : ${searchresult.indexOf(shuffledSong)}');
-                            _play(
-                                'http://54.200.143.85:4200/Audio/' +
-                                    shuffledSong,
-                                searchresult.indexOf(shuffledSong),
-                                shuffledSong);
-                          } else
-                            print('else playList withou shuffle');
-                          // playNextChecked();
-                          setState(() {
-                            playListIndex = 0;
-                            // = playListIndex + 1;
-                            curr_id = searchresult
-                                .indexOf(this.checkedSongs[playListIndex]); //0
-                          });
-                          _play(
-                              'http://54.200.143.85:4200/Audio/' +
-                                  checkedSongs[playListIndex].toString(),
-                              curr_id,
-                              checkedSongs[playListIndex]);
-                        } else
-                          // playNext();
-                          print('else playAll');
-                        if (shuffleSongs) {
-                          var shuffledSong = (searchresult..shuffle()).first;
-                          print('suffled songs : $shuffledSong');
-                          _play(
-                              'http://54.200.143.85:4200/Audio/' + shuffledSong,
-                              searchresult.indexOf(shuffledSong),
-                              shuffledSong);
-                        } else
-                          _play(
-                              'http://54.200.143.85:4200/Audio/' +
-                                  searchresult[0],
-                              0,
-                              searchresult[0]);
-                      } else {
-                        _stop();
-                      }
-                    },
-                  ),
-                  FlatButton.icon(
-                      // color: Color(0xffb00bae3),
-                      icon: Icon(
-                        Icons.shuffle,
-                        color: !shuffleSongs ? Colors.grey : Color(0xffb00bae3),
-                      ),
-                      label: !shuffleSongs
-                          ? Text('Shuffle',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 16.0))
-                          : Text('Shuffle',
-                              style: TextStyle(
-                                  color: Color(0xffb00bae3), fontSize: 16.0)),
-                      onPressed: () {
-                        setState(() {
-                          shuffleSongs = !shuffleSongs;
-                        });
-                      })
-                ],
-              ),
+              !loading
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        FlatButton.icon(
+                          icon: !playAll
+                              ? Icon(
+                                  Icons.repeat,
+                                  color: Colors.grey,
+                                )
+                              : Icon(
+                                  Icons.pause_circle_outline,
+                                  color: Color(0xffb00bae3),
+                                ),
+                          label: !playAll
+                              ? Text('Play All',
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 16.0))
+                              : Text('Stop',
+                                  style: TextStyle(
+                                      color: Color(0xffb00bae3),
+                                      fontSize: 16.0)),
+                          onPressed: () {
+                            setState(() {
+                              playAll = !playAll;
+                            });
+                            if (playAll) {
+                              if (checkedSongs.length > 0) {
+                                if (shuffleSongs) {
+                                  print('$checkedSongs');
+                                  var shuffledSong =
+                                      (checkedSongs..shuffle()).first;
+                                  print(
+                                      'suffled songs : $shuffledSong and index : ${searchresult.indexOf(shuffledSong)}');
+                                  _play(
+                                      'http://54.200.143.85:4200/Audio/' +
+                                          shuffledSong,
+                                      searchresult.indexOf(shuffledSong),
+                                      shuffledSong);
+                                } else
+                                  print('else playList withou shuffle');
+                                // playNextChecked();
+                                setState(() {
+                                  playListIndex = 0;
+                                  // = playListIndex + 1;
+                                  curr_id = searchresult.indexOf(
+                                      this.checkedSongs[playListIndex]); //0
+                                });
+                                _play(
+                                    'http://54.200.143.85:4200/Audio/' +
+                                        checkedSongs[playListIndex].toString(),
+                                    curr_id,
+                                    checkedSongs[playListIndex]);
+                              } else
+                                // playNext();
+                                print('else playAll');
+                              if (shuffleSongs) {
+                                var shuffledSong =
+                                    (searchresult..shuffle()).first;
+                                print('suffled songs : $shuffledSong');
+                                _play(
+                                    'http://54.200.143.85:4200/Audio/' +
+                                        shuffledSong,
+                                    searchresult.indexOf(shuffledSong),
+                                    shuffledSong);
+                              } else
+                                _play(
+                                    'http://54.200.143.85:4200/Audio/' +
+                                        searchresult[0],
+                                    0,
+                                    searchresult[0]);
+                            } else {
+                              _stop();
+                            }
+                          },
+                        ),
+                        FlatButton.icon(
+                            icon: Icon(
+                              Icons.shuffle,
+                              color: !shuffleSongs
+                                  ? Colors.grey
+                                  : Color(0xffb00bae3),
+                            ),
+                            label: !shuffleSongs
+                                ? Text('Shuffle',
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 16.0))
+                                : Text('Shuffle',
+                                    style: TextStyle(
+                                        color: Color(0xffb00bae3),
+                                        fontSize: 16.0)),
+                            onPressed: () {
+                              setState(() {
+                                shuffleSongs = !shuffleSongs;
+                              });
+                            })
+                      ],
+                    )
+                  : SizedBox(
+                      width: 0,
+                      height: 0,
+                    ),
               Divider(height: 5.0),
               Flexible(
                 child: this.loading
@@ -384,9 +355,11 @@ class _AudioListState extends State<AudioList> {
                                           ? _position != null &&
                                                   _duration != null
                                               ? IconButton(
-                                                  icon: Icon(Icons
-                                                      .pause_circle_outline,color: Color(0xffb00bae3),),
-                                                  iconSize: 40.0,
+                                                  icon: Icon(
+                                                    Icons.pause_circle_outline,
+                                                    color: Color(0xffb00bae3),
+                                                  ),
+                                                  iconSize: 45.0,
                                                   color: Colors.black,
                                                   onPressed: () {
                                                     _stop(); //url snapshot.data[index].toString()
@@ -400,8 +373,9 @@ class _AudioListState extends State<AudioList> {
                                                 )
                                           : IconButton(
                                               icon: Icon(
-                                                  Icons.play_circle_outline,),
-                                              iconSize: 40.0,
+                                                Icons.play_circle_outline,
+                                              ),
+                                              iconSize: 45.0,
                                               color: Colors.black,
                                               onPressed: () {
                                                 if (_position == null &&
@@ -446,29 +420,6 @@ class _AudioListState extends State<AudioList> {
                                               width: 0,
                                             ),
                                     ),
-                                    // onLongpressed
-                                    //     ? checkedSongs
-                                    //             .contains(searchresult[index])
-                                    //         ? Positioned(
-                                    //             right: 0.0,
-                                    //             bottom: 15.0,
-                                    //             child: Icon(
-                                    //               Icons.check_circle,
-                                    //               color: Color(0xffb00bae3),
-                                    //             ),
-                                    //           )
-                                    //         : Positioned(
-                                    //             right: 0.0,
-                                    //             bottom: 15.0,
-                                    //             child: Icon(
-                                    //               Icons.radio_button_unchecked,
-                                    //               color: Color(0xffb00bae3),
-                                    //             ),
-                                    //           )
-                                    //     : SizedBox(
-                                    //         height: 0,
-                                    //         width: 0,
-                                    //       )
                                   ],
                                 ),
                               ),

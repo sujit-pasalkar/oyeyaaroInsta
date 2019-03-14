@@ -139,7 +139,7 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage>
                           _value1Changed();
                         },
                       ),
-                      Text("Please press 'Accept' to accept the Oye Yaaro",
+                      Text("Please press 'Accept' to continue",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,

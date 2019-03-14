@@ -122,7 +122,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
         ),
       ),
       title: Text(username),
-      subtitle: Text("Somehere on earth"),
+      // subtitle: Text("Somehere on earth"),
       // subtitle: Text("in $location"),
       trailing: _menuBuilder(),
     );
@@ -493,7 +493,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
                   Navigator.pop(context);
                   await reference
                       .document(postId)
-                      .updateData({'Visibility': currentUser.groupId});
+                      .updateData({'visibility': currentUser.groupId});
                   setState(() {});
                 },
               ),
@@ -511,7 +511,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
                   Navigator.pop(context);
                   await reference
                       .document(postId)
-                      .updateData({'Visibility': currentUser.collegeName});
+                      .updateData({'visibility': currentUser.collegeName});
                   setState(() {});
                 },
               ),
@@ -529,7 +529,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
                   Navigator.pop(context);
                   await reference
                       .document(postId)
-                      .updateData({'Visibility': 'Public'});
+                      .updateData({'visibility': 'Public'});
                   setState(() {});
                 },
               ),

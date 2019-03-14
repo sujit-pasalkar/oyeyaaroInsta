@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
+import 'package:flutter/services.dart';
 
 class PlayScreen extends StatefulWidget {
   final String url;
@@ -17,7 +18,8 @@ class _PlayScreenState extends State<PlayScreen> {
   VideoPlayerController _controller;
   ChewieController _chewieController;
   VoidCallback listener;
-  double aspect = 1.0;
+  double aspect; //= 0.6666666667;
+  // = 3/2;
 
   bool showVideo = false;
 
@@ -32,10 +34,10 @@ class _PlayScreenState extends State<PlayScreen> {
     }
 
     _controller.initialize().then((onValue) {
-      aspect = _controller.value.aspectRatio;
+      aspect = aspect;//_controller.value.aspectRatio; //10 / 15;
       _chewieController = ChewieController(
         videoPlayerController: _controller,
-        aspectRatio: aspect,
+        aspectRatio:aspect,// _controller.value.aspectRatio,
         autoPlay: true,
         looping: false,
       );
@@ -57,28 +59,46 @@ class _PlayScreenState extends State<PlayScreen> {
 
   @override
   void dispose() {
+    _chewieController.exitFullScreen();
+    print('isFullScreen:${_chewieController.isFullScreen}');
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    _chewieController.toggleFullScreen();
+    _controller.removeListener(listener);
+    _chewieController.removeListener(listener);
     _controller.dispose();
     _chewieController.dispose();
+    print('exited');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: new AppBar(
-        title: new Text(
-          'Video',
-          style: TextStyle(fontSize: 22.0),
+    MediaQueryData queryData;
+    queryData = MediaQuery.of(context);
+    aspect =queryData.size.width/queryData.size.height;
+    return new MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.black,
+        // appBar: new AppBar(
+        //   title: new Text(
+        //     // queryData.size.width.toString()+":"+queryData.size.height.toString(),
+        //     "Video",
+        //     style: TextStyle(fontSize: 22.0),
+        //   ),
+        //   backgroundColor: Color(0xffb00bae3).withOpacity(1),
+        // ),
+        body: Center(
+          child: showVideo
+              ? Chewie(
+                  controller: _chewieController,
+                )
+              : CircularProgressIndicator(
+                  valueColor:
+                      new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))),
         ),
-        backgroundColor: Color(0xffb00bae3),
-      ),
-      body: Center(
-        child: showVideo
-            ? Chewie(
-                controller: _chewieController,
-              )
-            : CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
-                        Color(0xffb00bae3))),
       ),
     );
   }

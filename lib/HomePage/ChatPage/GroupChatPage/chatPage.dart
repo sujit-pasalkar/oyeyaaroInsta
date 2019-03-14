@@ -1,3 +1,4 @@
+//check delete from album service, check remove from deleteIndex vaues
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
@@ -21,7 +22,7 @@ import '../../../ProfilePage/memberPictures.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import '../../../models/data-service.dart';
 import 'package:thumbnails/thumbnails.dart';
-// import 'package:connect_yaar/models/data-service.dart';
+import '../../pages/Network/network_screen.dart';
 
 class Choice {
   const Choice({this.title, this.icon});
@@ -50,6 +51,7 @@ class Chat extends StatefulWidget {
   final String name;
   final List<GroupModel> groupInfo;
   final String adminId;
+  // final ScrollController hideButtonController;
 
   Chat({
     Key key,
@@ -58,6 +60,7 @@ class Chat extends StatefulWidget {
     @required this.name,
     @required this.groupInfo,
     @required this.adminId,
+    // @required this.hideButtonController
   }) : super(key: key);
 
   @override
@@ -73,6 +76,7 @@ enum PlayerState { stopped, playing, paused }
 
 class ChatScreenState extends State<Chat> {
   var _scaffoldKey = new GlobalKey<ScaffoldState>();
+  ScrollController hideButtonController;
 
   String peerId;
   String adminId;
@@ -84,6 +88,7 @@ class ChatScreenState extends State<Chat> {
     @required this.groupInfo,
     @required this.name,
     @required this.adminId,
+    // @required this.hideButtonController
   }) {
     textEditingController.addListener(() {
       if (textEditingController.text.isEmpty) {
@@ -98,21 +103,12 @@ class ChatScreenState extends State<Chat> {
     });
   }
 
-  // //toggel chat type 0 or all
-  // List<Choice> choices = const <Choice>[
-  //   Choice(
-  //       title: 'Restore Media',
-  //       icon: Icons.photo_library), //color: Colors.white
-  //   Choice(
-  //     title: 'Hide Media',
-  //     icon: Icons.photo_size_select_large,
-  //   )
-  // ];
   int type = 10;
 
   //delete data
   bool isLongpressedForDelete = false;
   List<dynamic> indexesToDelete = [];
+  List<dynamic> indexesToDeleteFrmAlbum = [];
 
   // vars
   var downloadedSongPath;
@@ -129,8 +125,8 @@ class ChatScreenState extends State<Chat> {
   String chatType;
   String myId;
   String myName;
-  String id; //
-  String timestamp; //
+  String id;
+  String timestamp;
 
   List<GroupModel> groupInfo;
   var groupMembersArr = [];
@@ -138,7 +134,7 @@ class ChatScreenState extends State<Chat> {
   SharedPreferences prefs;
 
   File imageFile;
-  String imageUrl; //
+  String imageUrl;
 
   //#songList
   bool isPlaying = false;
@@ -149,7 +145,7 @@ class ChatScreenState extends State<Chat> {
   List<dynamic> _songList1;
   List<dynamic> _songList2;
 
-  String searchText = ""; //
+  String searchText = "";
   AudioPlayer audioPlayer;
   PlayerState playerState = PlayerState.stopped;
   Duration duration;
@@ -204,12 +200,10 @@ class ChatScreenState extends State<Chat> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return new Scaffold(
-      // key: _scaffoldKey,
+      key: _scaffoldKey,
       appBar: !isLongpressedForDelete && this.indexesToDelete.length == 0
           ? AppBar(
-              title:
-                  // new Text(this.name),
-                  GestureDetector(
+              title: GestureDetector(
                 child: Text(this.name),
                 onTap: () {
                   Navigator.push(
@@ -220,28 +214,6 @@ class ChatScreenState extends State<Chat> {
                   );
                 },
               ),
-
-              // FlatButton(
-              //   onPressed: () {
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(
-              //           builder: (context) => Members(
-              //               peerId: widget.peerId, groupName: widget.name)),
-              //     );
-              //   },
-              //   textColor: Colors.white,
-              //   splashColor: Color(0xffb00bae3),
-              //   child: new Text(
-              //     this.name,
-              //     overflow: TextOverflow.ellipsis,
-              //     style: TextStyle(
-              //       color: Colors.white,
-              //       fontWeight: FontWeight.bold,
-              //       fontSize: 19,
-              //     ),
-              //   ),
-              // ),
               actions: <Widget>[
                 IconButton(
                   icon: const Icon(Icons.group_add),
@@ -271,50 +243,102 @@ class ChatScreenState extends State<Chat> {
                   ),
                   tooltip: "Menu",
                   onSelected: onItemMenuPress,
-                  itemBuilder: (BuildContext context) => [
-                        PopupMenuItem<String>(
-                          value: 'Restore Media',
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 5.0),
-                            child: Row(
-                              children: <Widget>[
-                                Text("Restore Media"),
-                                Spacer(),
-                                Icon(Icons.photo_library),
-                              ],
+                  itemBuilder: (BuildContext context) => adminId == myId
+                      ? [
+                          PopupMenuItem<String>(
+                            value: 'Restore Media',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Restore Media"),
+                                  Spacer(),
+                                  Icon(Icons.photo_library),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        PopupMenuItem<String>(
-                          value: 'Hide Media',
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 5.0),
-                            child: Row(
-                              children: <Widget>[
-                                Text("Hide Media"),
-                                Spacer(),
-                                Icon(Icons.photo_size_select_large),
-                              ],
+                          PopupMenuItem<String>(
+                            value: 'Hide Media',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Hide Media"),
+                                  Spacer(),
+                                  Icon(Icons.photo_size_select_large),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        adminId == myId
-                            ? PopupMenuItem<String>(
-                                value: 'Delete Group',
-                                child: Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 5.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Text("Delete Group"),
-                                      Spacer(),
-                                      Icon(Icons.delete),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : PopupMenuItem<String>(),
-                      ],
+                          PopupMenuItem<String>(
+                            value: 'Albums',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Albums"),
+                                  Spacer(),
+                                  Icon(Icons.local_movies),
+                                ],
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'Delete Group',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Delete Group"),
+                                  Spacer(),
+                                  Icon(Icons.delete),
+                                ],
+                              ),
+                            ),
+                          )
+                        ]
+                      : [
+                          PopupMenuItem<String>(
+                            value: 'Restore Media',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Restore Media"),
+                                  Spacer(),
+                                  Icon(Icons.photo_library),
+                                ],
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'Hide Media',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Hide Media"),
+                                  Spacer(),
+                                  Icon(Icons.photo_size_select_large),
+                                ],
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'Albums',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Albums"),
+                                  Spacer(),
+                                  Icon(Icons.local_movies),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                 )
 
                 // PopupMenuButton<Choice>(
@@ -387,15 +411,33 @@ class ChatScreenState extends State<Chat> {
   }
 
   void onItemMenuPress(String choice) {
-    if (choice == 'Restore Media') {
-      this.setPref(10);
-    } else if (choice == 'Hide Media') {
-      // print('Hide Media');
-      this.setPref(0);
-      print('$type ,0');
-    } else if (choice == "Delete Group") {
-      print('delete Media');
-      deleteGroup();
+    switch (choice) {
+      case 'Restore Media':
+        {
+          this.setPref(10);
+        }
+        break;
+      case 'Hide Media':
+        {
+          this.setPref(0);
+        }
+        break;
+      case 'Delete Group':
+        {
+          deleteGroup();
+        }
+        break;
+      case 'Albums':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NetworkScreen(
+                  hideButtonController: hideButtonController,
+                  dialogId: widget.peerId,
+                ),
+          ),
+        );
+        break;
     }
   }
 
@@ -575,6 +617,8 @@ class ChatScreenState extends State<Chat> {
       setState(() {
         isLoading = true;
       });
+      print('in get Gallery video');
+
       var originalVideoUrl =
           await ImagePicker.pickVideo(source: ImageSource.gallery);
 
@@ -595,6 +639,7 @@ class ChatScreenState extends State<Chat> {
   }
 
   Future<String> _compressVideo(String originalVideoUrl) async {
+    print('in compress vedio');
     var compressedVideoUrl;
     var platform = const MethodChannel("plmlogix.recordvideo/info");
 
@@ -831,13 +876,9 @@ class ChatScreenState extends State<Chat> {
             children: <Widget>[
               document['type'] == 0
                   // Text
-                  ?
-                  // ClipPath(
-                  //   clipper: CustomShapeClipper(),
-                  //     child:
-                  GestureDetector(
+                  ? GestureDetector(
                       onLongPress: () {
-                        adddeleteMsgIdx(index, document['timestamp']);
+                        adddeleteMsgIdx(index, document['timestamp'], 0);
                       },
                       child: Container(
                         child: new Column(
@@ -891,7 +932,7 @@ class ChatScreenState extends State<Chat> {
                       // Image
                       ? GestureDetector(
                           onLongPress: () {
-                            adddeleteMsgIdx(index, document['timestamp']);
+                            adddeleteMsgIdx(index, document['timestamp'], 1);
                           },
                           onTap: () {
                             // print(document['msg']);
@@ -936,9 +977,10 @@ class ChatScreenState extends State<Chat> {
                                 Material(
                                   child: CachedNetworkImage(
                                     placeholder: Container(
-                                      child: CircularProgressIndicator(),
-                                      // width: 200.0,
-                                      // height: 200.0,
+                                      child: CircularProgressIndicator(
+                                          valueColor:
+                                              new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xffb00bae3))),
                                       padding: EdgeInsets.all(70.0),
                                       decoration: BoxDecoration(
                                         color: greyColor2,
@@ -985,7 +1027,8 @@ class ChatScreenState extends State<Chat> {
                       : document['type'] == 2 && this.type == 10
                           ? GestureDetector(
                               onLongPress: () {
-                                adddeleteMsgIdx(index, document['timestamp']);
+                                adddeleteMsgIdx(
+                                    index, document['timestamp'], 2);
                               },
                               onTap: () {
                                 Navigator.push(
@@ -1071,7 +1114,7 @@ class ChatScreenState extends State<Chat> {
                               ? GestureDetector(
                                   onLongPress: () {
                                     adddeleteMsgIdx(
-                                        index, document['timestamp']);
+                                        index, document['timestamp'], 3);
                                   },
                                   onTapUp: (TapUpDetails details) {
                                     isPlaying
@@ -1177,123 +1220,136 @@ class ChatScreenState extends State<Chat> {
                                     ),
                                   ),
                                 )
-                              :
-                              // playSong  audio ...long   type = 4
-                              GestureDetector(
-                                  onLongPress: () {
-                                    adddeleteMsgIdx(
-                                        index, document['timestamp']);
-                                  },
-                                  onTapUp: (TapUpDetails details) {
-                                    print("onTapUp");
-                                    isPlaying
-                                        ? stop()
-                                        : play(
-                                            document['msg'].toString(),
-                                            document['msg'].toString().replaceAll(
-                                                'http://54.200.143.85:4200/Audio/',
-                                                ''));
-                                  },
-                                  child: Container(
-                                    height: 103.0,
-                                    width: 130.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(8.0),
-                                      ),
-                                    ),
-                                    margin: EdgeInsets.only(
-                                      bottom: isLastMessageRight(index)
-                                          ? 20.0
-                                          : 10.0,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: <Widget>[
-                                        Text(document['senderName'],
-                                            style: new TextStyle(
-                                                fontSize: 12.0,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold)),
-                                        Container(
-                                          height: 60.0,
-                                          width: 60.0,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(8.0),
-                                            ),
+                              : document['type'] == 4
+                                  ?
+                                  // playSong  audio ...long   type = 4
+                                  GestureDetector(
+                                      onLongPress: () {
+                                        adddeleteMsgIdx(
+                                            index, document['timestamp'], 4);
+                                      },
+                                      onTapUp: (TapUpDetails details) {
+                                        print("onTapUp");
+                                        isPlaying
+                                            ? stop()
+                                            : play(
+                                                document['msg'].toString(),
+                                                document['msg']
+                                                    .toString()
+                                                    .replaceAll(
+                                                        'http://54.200.143.85:4200/Audio/',
+                                                        ''));
+                                      },
+                                      child: Container(
+                                        height: 103.0,
+                                        width: 130.0,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(8.0),
                                           ),
-                                          child: playPauseIcon(document['msg']
-                                                  .toString()
-                                                  .replaceAll(
-                                                      'http://54.200.143.85:4200/Audio/',
-                                                      ''))
-                                              ? Container(
-                                                  margin: EdgeInsets.all(3),
-                                                  padding: EdgeInsets.all(5),
-                                                  decoration: BoxDecoration(
+                                        ),
+                                        margin: EdgeInsets.only(
+                                          bottom: isLastMessageRight(index)
+                                              ? 20.0
+                                              : 10.0,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: <Widget>[
+                                            Text(document['senderName'],
+                                                style: new TextStyle(
+                                                    fontSize: 12.0,
                                                     color: Colors.black,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(8.0),
-                                                    ),
-                                                  ),
-                                                  child: Column(
-                                                    children: <Widget>[
-                                                      LayoutBuilder(builder:
-                                                          (context,
-                                                              constraint) {
-                                                        return new Icon(
-                                                          Icons.pause,
-                                                          size: 40.0,
-                                                          color: Colors.white,
-                                                        );
-                                                      }),
-                                                    ],
-                                                  ),
-                                                )
-                                              : Container(
-                                                  margin: EdgeInsets.all(3),
-                                                  padding: EdgeInsets.all(5),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(8.0),
-                                                    ),
-                                                  ),
-                                                  child: Column(
-                                                    children: <Widget>[
-                                                      LayoutBuilder(builder:
-                                                          (context,
-                                                              constraint) {
-                                                        return new Icon(
-                                                          Icons.music_note,
-                                                          size: 40.0,
-                                                          color: Colors.white,
-                                                        );
-                                                      }),
-                                                    ],
-                                                  ),
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            Container(
+                                              height: 60.0,
+                                              width: 60.0,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.all(
+                                                  Radius.circular(8.0),
                                                 ),
+                                              ),
+                                              child: playPauseIcon(document[
+                                                          'msg']
+                                                      .toString()
+                                                      .replaceAll(
+                                                          'http://54.200.143.85:4200/Audio/',
+                                                          ''))
+                                                  ? Container(
+                                                      margin: EdgeInsets.all(3),
+                                                      padding:
+                                                          EdgeInsets.all(5),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.black,
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                          Radius.circular(8.0),
+                                                        ),
+                                                      ),
+                                                      child: Column(
+                                                        children: <Widget>[
+                                                          LayoutBuilder(builder:
+                                                              (context,
+                                                                  constraint) {
+                                                            return new Icon(
+                                                              Icons.pause,
+                                                              size: 40.0,
+                                                              color:
+                                                                  Colors.white,
+                                                            );
+                                                          }),
+                                                        ],
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      margin: EdgeInsets.all(3),
+                                                      padding:
+                                                          EdgeInsets.all(5),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.black,
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                          Radius.circular(8.0),
+                                                        ),
+                                                      ),
+                                                      child: Column(
+                                                        children: <Widget>[
+                                                          LayoutBuilder(builder:
+                                                              (context,
+                                                                  constraint) {
+                                                            return new Icon(
+                                                              Icons.music_note,
+                                                              size: 40.0,
+                                                              color:
+                                                                  Colors.white,
+                                                            );
+                                                          }),
+                                                        ],
+                                                      ),
+                                                    ),
+                                            ),
+                                            Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic),
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          DateFormat('dd MMM kk:mm').format(
-                                              DateTime
-                                                  .fromMillisecondsSinceEpoch(
-                                                      int.parse(document[
-                                                              'timestamp']) *
-                                                          1000)),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12.0,
-                                              fontStyle: FontStyle.italic),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
+                                      ),
+                                    )
+                                  : SizedBox(
+                                      height: 0,
+                                      width: 0,
+                                    )
             ],
             mainAxisAlignment: MainAxisAlignment.end,
           ),
@@ -1328,38 +1384,7 @@ class ChatScreenState extends State<Chat> {
             Row(
               children: <Widget>[
                 isLastMessageLeft(index)
-                    ?
-                    // Material(
-                    //     child:
-                    //     CachedNetworkImage(
-                    //       errorWidget:
-                    //       // new Icon(Icons.error),
-                    //       Text(document['senderId']),
-                    //       // Image.network('http://54.200.143.85:4200/profiles/then/' + document['senderId'] +'.jpg'),
-                    //       placeholder: Container(
-                    //         child: CircularProgressIndicator(
-                    //           strokeWidth: 1.0,
-                    //           valueColor:
-                    //               AlwaysStoppedAnimation<Color>(themeColor),
-                    //         ),
-                    //         width: 35.0,
-                    //         height: 35.0,
-                    //         padding: EdgeInsets.all(10.0),
-                    //       ),
-                    //       imageUrl: 'http://54.200.143.85:4200/profiles/now/' +
-                    //           document['senderId'] +
-                    //           '.jpg',
-                    //       width: 35.0,
-                    //       height: 35.0,
-                    //       fit: BoxFit.cover,
-                    //     ),
-                    //     borderRadius: BorderRadius.all(
-                    //       Radius.circular(18.0),
-                    //     ),
-                    //     clipBehavior: Clip.hardEdge,
-                    //   )
-
-                    new GestureDetector(
+                    ? new GestureDetector(
                         onTap: () {
                           print('open this user profile');
                           Navigator.push(
@@ -1386,13 +1411,6 @@ class ChatScreenState extends State<Chat> {
                                 decoration: new BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Colors.grey[300],
-                                  // image: new DecorationImage(
-                                  //   fit: BoxFit.cover,
-                                  //   image: new NetworkImage(
-                                  //       'http://54.200.143.85:4200/profiles/now/' +
-                                  //           document['senderId'] +
-                                  //           '.jpg'),
-                                  // ),
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(40.0),
@@ -1403,16 +1421,20 @@ class ChatScreenState extends State<Chat> {
                                             '.jpg',
                                     placeholder: Padding(
                                       padding: EdgeInsets.all(15),
-                                      child:SizedBox(
-                                      child: CircularProgressIndicator(
-                                        valueColor:new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3)),
-                                        strokeWidth: 1.0),
-                                    ),),
-                                    errorWidget: new Icon(Icons.error,color: Colors.black,),
+                                      child: SizedBox(
+                                        child: CircularProgressIndicator(
+                                            valueColor:
+                                                new AlwaysStoppedAnimation<
+                                                    Color>(Color(0xffb00bae3)),
+                                            strokeWidth: 1.0),
+                                      ),
+                                    ),
+                                    errorWidget: new Icon(
+                                      Icons.error,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                )
-
-                                ),
+                                )),
                           ),
                         ),
                       )
@@ -1510,7 +1532,10 @@ class ChatScreenState extends State<Chat> {
                                     },
                                     child: CachedNetworkImage(
                                       placeholder: Container(
-                                        child: CircularProgressIndicator(),
+                                        child: CircularProgressIndicator(
+                                            valueColor:
+                                                new AlwaysStoppedAnimation<
+                                                    Color>(Color(0xffb00bae3))),
                                         width: 200.0,
                                         height: 200.0,
                                         padding: EdgeInsets.all(70.0),
@@ -1759,129 +1784,144 @@ class ChatScreenState extends State<Chat> {
                                     ),
                                   )
 //type 4....long
-                                : Container(
-                                    height: 103.0,
-                                    width: 130.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(8.0),
-                                      ),
-                                    ),
-                                    margin: EdgeInsets.only(
-                                        bottom: isLastMessageRight(index)
-                                            ? 5.0
-                                            : 10.0,
-                                        left: 5.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Row(
+                                : document['type'] == 4
+                                    ? Container(
+                                        height: 103.0,
+                                        width: 130.0,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(8.0),
+                                          ),
+                                        ),
+                                        margin: EdgeInsets.only(
+                                            bottom: isLastMessageRight(index)
+                                                ? 5.0
+                                                : 10.0,
+                                            left: 5.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: <Widget>[
-                                            Expanded(
-                                              child: Text(
-                                                  document['senderName'],
-                                                  style: TextStyle(
-                                                      fontSize: 12.0,
-                                                      color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.bold)),
+                                            Row(
+                                              children: <Widget>[
+                                                Expanded(
+                                                  child: Text(
+                                                      document['senderName'],
+                                                      style: TextStyle(
+                                                          fontSize: 12.0,
+                                                          color: Colors.black,
+                                                          fontWeight:
+                                                              FontWeight.bold)),
+                                                ),
+                                              ],
+                                            ),
+                                            Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 2.0)),
+                                            GestureDetector(
+                                              child: Row(
+                                                children: <Widget>[
+                                                  playPauseIcon(document['msg']
+                                                          .toString()
+                                                          .replaceAll(
+                                                              'http://54.200.143.85:4200/Audio/',
+                                                              ''))
+                                                      ? Container(
+                                                          margin:
+                                                              EdgeInsets.all(3),
+                                                          padding:
+                                                              EdgeInsets.all(5),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: Colors.black,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(
+                                                              Radius.circular(
+                                                                  8.0),
+                                                            ),
+                                                          ),
+                                                          child: Column(
+                                                            children: <Widget>[
+                                                              LayoutBuilder(builder:
+                                                                  (context,
+                                                                      constraint) {
+                                                                return Icon(
+                                                                  Icons.pause,
+                                                                  size: 40.0,
+                                                                  color: Colors
+                                                                      .white,
+                                                                );
+                                                              }),
+                                                            ],
+                                                          ),
+                                                        )
+                                                      : Container(
+                                                          margin:
+                                                              EdgeInsets.all(3),
+                                                          padding:
+                                                              EdgeInsets.all(5),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: Colors.black,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(
+                                                              Radius.circular(
+                                                                  8.0),
+                                                            ),
+                                                          ),
+                                                          child: Column(
+                                                            children: <Widget>[
+                                                              LayoutBuilder(builder:
+                                                                  (context,
+                                                                      constraint) {
+                                                                return Icon(
+                                                                  Icons
+                                                                      .music_note,
+                                                                  size: 40.0,
+                                                                  color: Colors
+                                                                      .white,
+                                                                );
+                                                              }),
+                                                            ],
+                                                          ),
+                                                        )
+                                                ],
+                                              ),
+                                              onTapUp: (TapUpDetails details) {
+                                                print("onTapUp");
+                                                isPlaying
+                                                    ? stop()
+                                                    : play(
+                                                        document['msg']
+                                                            .toString(),
+                                                        document['msg']
+                                                            .toString()
+                                                            .replaceAll(
+                                                                'http://54.200.143.85:4200/Audio/',
+                                                                ''));
+                                              },
+                                            ),
+                                            Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic),
                                             ),
                                           ],
                                         ),
-                                        Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 2.0)),
-                                        GestureDetector(
-                                          child: Row(
-                                            children: <Widget>[
-                                              playPauseIcon(document['msg']
-                                                      .toString()
-                                                      .replaceAll(
-                                                          'http://54.200.143.85:4200/Audio/',
-                                                          ''))
-                                                  ? Container(
-                                                      margin: EdgeInsets.all(3),
-                                                      padding:
-                                                          EdgeInsets.all(5),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black,
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                          Radius.circular(8.0),
-                                                        ),
-                                                      ),
-                                                      child: Column(
-                                                        children: <Widget>[
-                                                          LayoutBuilder(builder:
-                                                              (context,
-                                                                  constraint) {
-                                                            return Icon(
-                                                              Icons.pause,
-                                                              size: 40.0,
-                                                              color:
-                                                                  Colors.white,
-                                                            );
-                                                          }),
-                                                        ],
-                                                      ),
-                                                    )
-                                                  : Container(
-                                                      margin: EdgeInsets.all(3),
-                                                      padding:
-                                                          EdgeInsets.all(5),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black,
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                          Radius.circular(8.0),
-                                                        ),
-                                                      ),
-                                                      child: Column(
-                                                        children: <Widget>[
-                                                          LayoutBuilder(builder:
-                                                              (context,
-                                                                  constraint) {
-                                                            return Icon(
-                                                              Icons.music_note,
-                                                              size: 40.0,
-                                                              color:
-                                                                  Colors.white,
-                                                            );
-                                                          }),
-                                                        ],
-                                                      ),
-                                                    )
-                                            ],
-                                          ),
-                                          onTapUp: (TapUpDetails details) {
-                                            print("onTapUp");
-                                            isPlaying
-                                                ? stop()
-                                                : play(
-                                                    document['msg'].toString(),
-                                                    document['msg']
-                                                        .toString()
-                                                        .replaceAll(
-                                                            'http://54.200.143.85:4200/Audio/',
-                                                            ''));
-                                          },
-                                        ),
-                                        Text(
-                                          DateFormat('dd MMM kk:mm').format(
-                                              DateTime
-                                                  .fromMillisecondsSinceEpoch(
-                                                      int.parse(document[
-                                                              'timestamp']) *
-                                                          1000)),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12.0,
-                                              fontStyle: FontStyle.italic),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                      )
+                                    : SizedBox(
+                                        height: 0,
+                                        width: 0,
+                                      )
               ],
             ),
           ],
@@ -1902,6 +1942,10 @@ class ChatScreenState extends State<Chat> {
 
   //song play stop pause
   Future<int> play(url, songName) async {
+    setState(() {
+      position = null;
+      duration = null;
+    });
     final result = await audioPlayer.play(url, isLocal: false);
     if (result == 1)
       setState(() {
@@ -1977,7 +2021,16 @@ class ChatScreenState extends State<Chat> {
               child: Row(
                 children: <Widget>[
                   playPauseIcon(listData)
-                      ? Icon(Icons.pause_circle_outline)
+                      ? position != null && duration != null
+                          ? Icon(Icons.pause_circle_outline)
+                          : SizedBox(
+                              child: new CircularProgressIndicator(
+                                  valueColor: new AlwaysStoppedAnimation(
+                                      Color(0xffb00bae3)),
+                                  strokeWidth: 1.0),
+                              height: 20.0,
+                              width: 20.0,
+                            )
                       : Image.asset('assets/short.png',
                           width: 25.0, height: 25.0),
                   Padding(
@@ -2033,7 +2086,16 @@ class ChatScreenState extends State<Chat> {
               child: Row(
                 children: <Widget>[
                   playPauseIcon(listData)
-                      ? Icon(Icons.pause_circle_outline)
+                      ? position != null && duration != null
+                          ? Icon(Icons.pause_circle_outline)
+                          : SizedBox(
+                              child: new CircularProgressIndicator(
+                                  valueColor: new AlwaysStoppedAnimation(
+                                      Color(0xffb00bae3)),
+                                  strokeWidth: 1.0),
+                              height: 20.0,
+                              width: 20.0,
+                            )
                       : Icon(Icons.music_note),
                   Text(
                     listData.replaceAll('.mp3', ''),
@@ -2163,11 +2225,24 @@ class ChatScreenState extends State<Chat> {
                           hintText: 'Type your message...',
                           hintStyle: TextStyle(color: greyColor),
                         ),
-                        onChanged: searchOperation,
+                        // onChanged: searchOperation,
                         focusNode: focusNode,
+                        onChanged: (input) {
+                          print(input.length);
+                          if (input.length >= 1) {
+                            setState(() {
+                              this.isSearching = true;
+                            });
+                            searchOperation(input);
+                          } else {
+                            stop();
+                          }
+                        },
                         onTap: () {
-                          print('ontapp...................---------------');
-                          this.isSearching = true;
+                          print('ontap-');
+                          setState(() {
+                            this.isSearching = true;
+                          });
                           searchOperation('a');
                         },
                       ),
@@ -2201,16 +2276,12 @@ class ChatScreenState extends State<Chat> {
     );
   }
 
-  // openBottomSheet() {
-  // }
-
   // not done
   openOptions() {
     showModalBottomSheet(
         context: context,
         builder: (builder) {
           return new Container(
-            // color: Colors.red,
             decoration: new BoxDecoration(
                 color: Colors.transparent,
                 borderRadius: new BorderRadius.only(
@@ -2221,19 +2292,11 @@ class ChatScreenState extends State<Chat> {
               children: <Widget>[
                 IconButton(
                   icon: Icon(Icons.delete_outline),
-                  onPressed: () {
-                    //delete video
-                    // File f = new File.fromUri(Uri.file(video));
-                    // f.delete();
-                    // Navigator.pop(context);
-                  },
+                  onPressed: () {},
                 ),
                 IconButton(
                   icon: Icon(Icons.share),
-                  onPressed: () {
-                    // Navigator.pop(context);
-                    // shareVideo(video, i); //file object
-                  },
+                  onPressed: () {},
                 )
               ],
             ),
@@ -2243,41 +2306,25 @@ class ChatScreenState extends State<Chat> {
   }
 
   Widget buildListMessage() {
-    // CollectionReference collectionRef =  Firestore.instance
-    //                   .collection('groups')
-    //                   .document(widget.peerId)
-    //                   .collection(widget.peerId);
-    // Query queryForText = collectionRef.where('type', isEqualTo: typeIs);
-    // Query queryForchatSong = queryForText.where('type', isEqualTo: 3);
-    // Query queryForSong = queryForchatSong.where('type', isEqualTo: 4);
-
     return Flexible(
       child: widget.peerId == ''
           ? Center(
               child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(themeColor)))
           : StreamBuilder<QuerySnapshot>(
-              stream:
-                  //  typeIs == 10?
-                  Firestore.instance
-                      .collection('groups')
-                      .document(widget.peerId)
-                      .collection(widget.peerId)
-                      .orderBy('timestamp', descending: true)
-                      // .limit(12)
-                      .snapshots(),
-              // : Firestore.instance
-              //     .collection('groups')
-              //     .document(widget.peerId)
-              //     .collection(widget.peerId)
-              //     .where('type', isGreaterThan: 1)
-              //     // .where('type',isGreaterThan: 2,)//isEqualTo: typeIs
-              //     // .orderBy('type', descending: true)
-              //     .orderBy('timestamp', descending: true)
-              //     .snapshots(),
+              stream: Firestore.instance
+                  .collection('groups')
+                  .document(widget.peerId)
+                  .collection(widget.peerId)
+                  .orderBy('timestamp', descending: true)
+                  // .limit(12)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
+                  return Center(
+                      child: CircularProgressIndicator(
+                          valueColor: new AlwaysStoppedAnimation<Color>(
+                              Color(0xffb00bae3))));
                 } else {
                   listMessage = snapshot.data.documents;
                   return ListView.builder(
@@ -2311,15 +2358,10 @@ class ChatScreenState extends State<Chat> {
       for (int i = 0; i < _songList2.length; i++) {
         String data = _songList2[i];
         if (data.toLowerCase().contains(searchText.toLowerCase())) {
-          //contains
-          // String changed =  data.replaceAll('.mp3', '');
           songSearchresult2.add(data);
           // print('****songSearchresult2 added :: ${songSearchresult2}');
           //remove .mp4  nt here
         }
-        //   if(songSearchresult2.isEmpty){
-        //   this.showShortSongsLongSongs = false;
-        // }
       }
 
       if (searchresult.length == 0 && songSearchresult2.length == 0) {
@@ -2340,22 +2382,49 @@ class ChatScreenState extends State<Chat> {
         print("got err while deleting msg:" + e);
       });
     }
+
+    //call delete from album service
+    http.Response response =
+        await http.post("http://54.200.143.85:4200/deleteMsgs",
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "dialog_id": peerId,
+              "type": "group",
+              "msgs": this.indexesToDeleteFrmAlbum,
+            }));
+    var res = jsonDecode(response.body);
+    print('indexes to delete album : $indexesToDeleteFrmAlbum');
+
+    print('delete from album  res :$res');
+
     setState(() {
       isLongpressedForDelete = false;
       indexesToDelete = [];
     });
   }
 
-  adddeleteMsgIdx(index, timestamp) {
+  adddeleteMsgIdx(index, timestamp, type) {
     setState(() {
       this.indexesToDelete.add(timestamp);
       this.isLongpressedForDelete = true;
+      this.indexesToDeleteFrmAlbum.add({"timestamp": timestamp, "type": type});
     });
+    print('after added in album [] : $indexesToDeleteFrmAlbum');
   }
 
   removeFrmIndexesToDelete(timestamp) {
     setState(() {
       this.indexesToDelete.remove(timestamp);
+
+      for (var i = 0; i < indexesToDeleteFrmAlbum.length; i++) {
+        var item = indexesToDeleteFrmAlbum[i]['timestamp'];
+        print('$item');
+        if(indexesToDeleteFrmAlbum[i]['timestamp'] == timestamp){
+          indexesToDeleteFrmAlbum.removeAt(i);
+        }
+      }
+      print('after removed from [] : $indexesToDeleteFrmAlbum');
+
       if (this.indexesToDelete.length == 0) {
         this.isLongpressedForDelete = false;
       }

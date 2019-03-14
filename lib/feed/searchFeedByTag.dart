@@ -22,7 +22,7 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
   );
   final key = GlobalKey<ScaffoldState>();
   final TextEditingController _searchQuery = TextEditingController();
-  List<dynamic> _list;
+  List<dynamic> _list = List<dynamic>();
   bool _isSearching;
   String _searchText = "";
 
@@ -42,16 +42,16 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
     });
   }
 
-
   @override
   void initState() {
-    _list = List<dynamic>();
     _loading = false;
     _isSearching = false;
     dataService.getAllTags().then((list) {
-      setState(() {
-        _list = list;
-      });
+      if (list.length > 0) {
+        setState(() {
+          _list = list;
+        });
+      }
     });
     super.initState();
   }
@@ -92,12 +92,14 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
   }
 
   _buildList() {
-    if (_list.length > 0)
+    if (_list != null && _list.length > 0)
       return _list.map((contact) => ChildItem(contact)).toList();
     else
-      ListTile(
-        title: Text("Loading...."),
-      );
+      return [
+        ListTile(
+          title: Text("Loading...."),
+        ),
+      ];
   }
 
   List<ChildItem> _buildSearchList() {
@@ -106,8 +108,10 @@ class _SearchFeedByTag extends State<SearchFeedByTag> {
     } else {
       List<dynamic> _searchList = List();
       for (int i = 0; i < _list.length; i++) {
-        String name = _list.elementAt(i)['tag'];
-        if (name.toLowerCase().contains(_searchText.toLowerCase())) {
+        Map<String, dynamic> name = _list.elementAt(i);
+        if (name['tag']
+            .toLowerCase()
+            .contains(_searchText.replaceAll("#", "").toLowerCase())) {
           _searchList.add(name);
         }
       }
@@ -189,7 +193,7 @@ class ChildItem extends StatelessWidget {
         alignment: Alignment(0.0, 0.0),
         child: Text(
           tag['count'].toString(),
-          style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
       onTap: () => _showResult(context),

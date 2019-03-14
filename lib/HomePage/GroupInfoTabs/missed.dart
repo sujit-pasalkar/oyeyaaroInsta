@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:share/share.dart';
 import '../../ProfilePage/profile.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 Future<List<MissedUsers>> fetchUsers(peerId, http.Client client) async {
   var bodyData = jsonEncode({"dialog_id": "${peerId}"});
@@ -59,7 +60,10 @@ class MissedPage extends StatelessWidget {
           if (snapshot.hasError) print(snapshot.error);
           return snapshot.hasData
               ? PhotosList(users: snapshot.data)
-              : Center(child: CircularProgressIndicator());
+              : Center(
+                  child: CircularProgressIndicator(
+                      valueColor: new AlwaysStoppedAnimation<Color>(
+                          Color(0xffb00bae3))));
         },
       ),
     );
@@ -96,25 +100,43 @@ class PhotosList extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Container(
-                          margin: EdgeInsets.all(2.0),
-                          decoration: new BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.grey,
-                            image: new DecorationImage(
-                              fit: BoxFit.cover,
-                              image: new NetworkImage(
-                                  "http://54.200.143.85:4200/profiles${users[position].thumbnail}"),
+                            margin: EdgeInsets.all(2.0),
+                            decoration: new BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey[300],
+                              // image: new DecorationImage(
+                              //   fit: BoxFit.cover,
+                              //   image: new NetworkImage(
+                              //       "http://54.200.143.85:4200/profiles${users[position].thumbnail}"),
+                              // ),
                             ),
-                          ),
-                        ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(40.0),
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    'http://54.200.143.85:4200/profiles${users[position].thumbnail}',
+                                placeholder: Padding(
+                                  padding: EdgeInsets.all(15),
+                                  child: SizedBox(
+                                    child: CircularProgressIndicator(
+                                        valueColor:
+                                            new AlwaysStoppedAnimation<Color>(
+                                                Color(0xffb00bae3)),
+                                        strokeWidth: 1.0),
+                                  ),
+                                ),
+                                errorWidget: new Icon(
+                                  Icons.error,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            )),
+
+                        //
+
+                        //
                       ),
                     ),
-                    // CircleAvatar(
-                    //   foregroundColor: Theme.of(context).primaryColor,
-                    //   backgroundColor: Colors.grey,
-                    //   backgroundImage: new NetworkImage(
-                    //       "http://54.200.143.85:4200/profiles${users[position].thumbnail}"),
-                    // ),
                     onTap: () {
                       Navigator.push(
                           context,
@@ -161,7 +183,8 @@ class PhotosList extends StatelessWidget {
   }
 
   invite(pin) {
+    //make clickablelink
     Share.share(
-        'You are invited to join your classmates @OyeYaaro. Download  this App by www.webworldindia.com/connectyaar/app use PIN #${pin} to login.See you in the room chat! ');
+        'You are invited to join your classmates @OyeYaaro. Download this App using http://oyeyaaro.plmlogix.com/download use PIN #$pin to login.See you in the room chat!');
   }
 }

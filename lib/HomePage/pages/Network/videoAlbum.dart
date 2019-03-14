@@ -13,7 +13,8 @@ class VideosData {
   final String timestamp;
   final String frameUrl;
 
-  VideosData({this.videoUrl, this.sendername, this.timestamp, this.frameUrl});
+
+  VideosData({this.videoUrl, this.sendername, this.timestamp,this.frameUrl,});
 
   factory VideosData.fromJson(Map<String, dynamic> json) {
     return VideosData(
@@ -21,6 +22,7 @@ class VideosData {
       sendername: json['senderName'] as String,
       timestamp: json['timestamp'] as String,
       frameUrl: json['frameUrl'] as String,
+
     );
   }
 }
@@ -32,8 +34,9 @@ List<VideosData> parseUsers(String responseBody) {
 
 class VideosPage extends StatefulWidget {
   final ScrollController hideButtonController;
+  final String dialogId;
 
-  VideosPage({@required this.hideButtonController});
+  VideosPage({@required this.hideButtonController, @required this.dialogId});
   @override
   _VideosPageState createState() => _VideosPageState();
 }
@@ -45,11 +48,14 @@ class _VideosPageState extends State<VideosPage> {
   var res;
   Set<String> resultFromFilter = new Set<String>();
   bool isLoading = false;
+  bool showFilter = false;
+  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
     print('videos*************${this.data}');
+    fetchVidForFilter();
   }
 
   @override
@@ -62,16 +68,22 @@ class _VideosPageState extends State<VideosPage> {
     return Scaffold(
       body: !isLoading
           ? FutureBuilder<List<VideosData>>(
-              future: fetchVideos(http.Client()),
+              future: fetchVideos(http.Client(), widget.dialogId),
               builder: (context, snapshot) {
                 if (snapshot.hasError) print(snapshot.error);
                 return snapshot.hasData
-                    ? bodyMd(snapshot.data)
-                    : Center(child: CircularProgressIndicator());
+                    ?
+                    bodyMd(snapshot.data)
+                    : Center(
+                        child: CircularProgressIndicator(
+                            valueColor: new AlwaysStoppedAnimation<Color>(
+                                Color(0xffb00bae3))));
               },
             )
-          : Center(child: CircularProgressIndicator()),
-
+          : Center(
+              child: CircularProgressIndicator(
+                  valueColor:
+                      new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3)))),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xffb00bae3),
         child: Icon(
@@ -79,17 +91,18 @@ class _VideosPageState extends State<VideosPage> {
           color: Colors.white,
           size: 25.0,
         ),
-        onPressed: () {
+        onPressed: showFilter ?() {
           onTabTapped();
-        },
+        }
+        :
+        null
       ),
     );
   }
 
+  
   void onTabTapped() async {
-    // print('${index}');
-    // if (index == 0) {
-    print('RES :: ${res}');
+    print('RES :: $res');
     resultFromFilter = await Navigator.push(
         context,
         MaterialPageRoute(
@@ -105,13 +118,25 @@ class _VideosPageState extends State<VideosPage> {
     }
   }
 
-  Future<List<VideosData>> fetchVideos(http.Client client) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var userPin = (prefs.getString('userPin'));
+  fetchVidForFilter()async{
+    http.Response response = await http.post("http://54.200.143.85:4200/getVideos",
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"dialog_id": '${widget.dialogId}'}));
+        res = jsonDecode(response.body);
+        print('in fetch photo res for filter: $res');
+        setState(() {
+         showFilter = true; 
+        });
+  }
+
+  Future<List<VideosData>> fetchVideos(http.Client client, dialogId) async {
+    print('dialogId : $dialogId');
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // var userPin = (prefs.getString('userPin'));
 
     final result = await client.post("http://54.200.143.85:4200/getVideos",
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"PinCode": '$userPin'}));
+        body: jsonEncode({"dialog_id": '$dialogId'}));
 
     res = jsonDecode(result.body);
     print('******Videos data.body :$res');
@@ -138,22 +163,43 @@ class _VideosPageState extends State<VideosPage> {
 
   Widget bodyMd(snapshot) {
     data = snapshot;
-    print('data.....${data}');
-    return GridView.count(
+    print('data.....$data');
+    return 
+    data.length == 0 ?
+    Center(
+      child:Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+           Icon(
+          Icons.videocam,
+          color: Color(0xffb00bae3),
+          size: 95.0,
+        ),
+          Text('Empty Album',style: TextStyle(color: Color(0xffb00bae3),fontSize: 18),)
+        ],
+      )
+    )
+    :
+    GridView.count(
       primary: false,
       padding: EdgeInsets.all(10.0),
       crossAxisSpacing: 8.0,
       crossAxisCount: 2,
       controller: widget.hideButtonController,
-      children: videosGrid(snapshot),
+      children: videosGrid(snapshot,context),
     );
   }
 
-  List<Widget> videosGrid(videoData) {
+  List<Widget> videosGrid(videoData,context) {
     print('${videoData.runtimeType}');
+    print('----------------------${videoData.length}');
     List<Widget> btnlist = List<Widget>();
     for (var i = 0; i < videoData.length; i++) {
-      print('dataList : ${videoData[i].frameUrl}');
+            print('video frame frameUrl : ${videoData[i].frameUrl}');
+            print('video frame videoUrl : ${videoData[i].videoUrl}');
+            print('video frame sendername : ${videoData[i].sendername}');
+            print('video frame timestamp : ${videoData[i].timestamp}');
+
       btnlist.add(
         Container(
           margin: EdgeInsets.only(bottom: 8.0),
@@ -161,7 +207,7 @@ class _VideosPageState extends State<VideosPage> {
               color: Colors.black,
               image: DecorationImage(
                 image: NetworkImage(videoData[i].frameUrl),
-                fit: BoxFit.cover,
+                fit: BoxFit.cover, 
               ),
               border: Border.all(color: Colors.black),
               borderRadius: BorderRadius.circular(10.0)),

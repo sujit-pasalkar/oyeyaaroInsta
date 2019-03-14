@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../HomePage/ChatPage/PrivateChatPage/privateChatePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../ProfilePage/profile.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class JoinedUsers {
   final String Name;
@@ -79,7 +80,10 @@ class JoinedPage extends StatelessWidget {
           if (snapshot.hasError) print(snapshot.error);
           return snapshot.hasData
               ? UsersList(users: snapshot.data)
-              : Center(child: CircularProgressIndicator());
+              : Center(
+                  child: CircularProgressIndicator(
+                      valueColor: new AlwaysStoppedAnimation<Color>(
+                          Color(0xffb00bae3))));
         },
       ),
     );
@@ -122,14 +126,39 @@ class UsersList extends StatelessWidget {
                               margin: EdgeInsets.all(2.0),
                               decoration: new BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.grey,
-                                image: new DecorationImage(
-                                  fit: BoxFit.cover,
-                                  image: new NetworkImage(users[position]
+                                color: Colors.grey[300],
+                                // image: new DecorationImage(
+                                //   fit: BoxFit.cover,
+                                // image: new NetworkImage(users[position]
+                                //         .imageNow
+                                //         .contains('default')
+                                //     ? "http://54.200.143.85:4200/profiles${users[position].thumbnail}"
+                                //     : "http://54.200.143.85:4200/profiles${users[position].imageNow}"),
+                                // ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(40.0),
+                                child: CachedNetworkImage(
+                                  imageUrl: users[position]
                                           .imageNow
                                           .contains('default')
                                       ? "http://54.200.143.85:4200/profiles${users[position].thumbnail}"
-                                      : "http://54.200.143.85:4200/profiles${users[position].imageNow}"),
+                                      : "http://54.200.143.85:4200/profiles${users[position].imageNow}",
+                                  // 'http://54.200.143.85:4200/profiles${users[position].thumbnail}',
+                                  placeholder: Padding(
+                                    padding: EdgeInsets.all(15),
+                                    child: SizedBox(
+                                      child: CircularProgressIndicator(
+                                          valueColor:
+                                              new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xffb00bae3)),
+                                          strokeWidth: 1.0),
+                                    ),
+                                  ),
+                                  errorWidget: new Icon(
+                                    Icons.error,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                             ),

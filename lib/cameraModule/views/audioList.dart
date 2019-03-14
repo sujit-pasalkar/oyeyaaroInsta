@@ -26,6 +26,7 @@ class _AudioListState extends State<AudioList> {
   bool isCheckDuration = false;
   String loadingMsg = "Loading Songs..";
   String sendUrl = '';
+  String playingSongName = "";
   bool donloadSongLoading = false;
 
   AudioPlayer _audioPlayer;
@@ -86,6 +87,7 @@ class _AudioListState extends State<AudioList> {
       print('audioPlayer error : $msg');
       setState(() {
         _playerState = PlayerState.stopped;
+        playingSongName = '';
         _duration = Duration(seconds: 0);
         _position = Duration(seconds: 0);
       });
@@ -95,6 +97,7 @@ class _AudioListState extends State<AudioList> {
   void onComplete() {
     setState(() {
       _playerState = PlayerState.stopped;
+      playingSongName = '';
       isPlaying = false;
     });
     // playNext();
@@ -110,7 +113,9 @@ class _AudioListState extends State<AudioList> {
         ),
         body: donloadSongLoading
             ? Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                    valueColor:
+                        new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))),
               )
             : Stack(
                 children: <Widget>[
@@ -157,7 +162,10 @@ class _AudioListState extends State<AudioList> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
-                                    CircularProgressIndicator(),
+                                    CircularProgressIndicator(
+                                        valueColor:
+                                            new AlwaysStoppedAnimation<Color>(
+                                                Color(0xffb00bae3))),
                                     Padding(
                                       padding: EdgeInsets.only(top: 20),
                                     ),
@@ -171,48 +179,49 @@ class _AudioListState extends State<AudioList> {
                                   return Column(
                                     children: <Widget>[
                                       ListTile(
-                                        leading: isPlaying && curr_id == index
+                                        leading: isPlaying && searchresult[index] ==
+                                                  playingSongName//curr_id == index
                                             ? _position != null &&
                                                     _duration != null
                                                 ? IconButton(
                                                     icon: Icon(Icons
                                                         .pause_circle_outline),
-                                                    iconSize: 40.0,
-                                                    color: Colors.black,
+                                                    iconSize: 45.0,
+                                                    color: Color(0xffb00bae3),
                                                     onPressed: () {
                                                       _stop();
                                                     },
                                                   )
-                                                : CircularProgressIndicator()
+                                                : CircularProgressIndicator(
+                                                    valueColor:
+                                                        new AlwaysStoppedAnimation<
+                                                                Color>(
+                                                            Color(0xffb00bae3)))
                                             : IconButton(
                                                 icon: Icon(
                                                     Icons.play_circle_outline),
-                                                iconSize: 40.0,
+                                                iconSize: 45.0,
                                                 color: Colors.black,
                                                 onPressed: () {
                                                   if (_position == null &&
                                                       _duration == null) {
                                                     _stop().then((res) {
-                                                      print('after stopped.. : ${res}');
+                                                      print(
+                                                          'after stopped.. : ${res}');
                                                       _play(
                                                           'http://54.200.143.85:4200/Audio/' +
                                                               searchresult[
                                                                       index]
                                                                   .toString(),
-                                                          index);
+                                                          index,searchresult[index]);
                                                     });
                                                   } else {
                                                     _play(
                                                         'http://54.200.143.85:4200/Audio/' +
                                                             searchresult[index]
                                                                 .toString(),
-                                                        index);
+                                                        index,searchresult[index]);
                                                   }
-                                                  // _play(
-                                                  //     'http://54.200.143.85:4200/Audio/' +
-                                                  //         searchresult[index]
-                                                  //             .toString(),
-                                                  //     index);
                                                 },
                                               ),
                                         title: Text(
@@ -228,7 +237,6 @@ class _AudioListState extends State<AudioList> {
                                             icon: new Image.asset(
                                                 "assets/video_call_inactive.png"),
                                             iconSize: 25.0,
-                                            // color: Colors.black,
                                             onPressed: () {
                                               Fluttertoast.showToast(
                                                 msg: "Downloading...",
@@ -277,12 +285,12 @@ class _AudioListState extends State<AudioList> {
         isCheckDuration = true;
       });
     } else {
-      print('error is : ${_duration}');
+      print('error is : $_duration');
     }
   }
 
   // Future<int>
-  _play(url, idx) async {
+  _play(url, idx,songnm) async {
     print("play url----------------------: ${url} && index : ${idx}");
     final playPosition = (_position != null &&
             _duration != null &&
@@ -304,6 +312,7 @@ class _AudioListState extends State<AudioList> {
         isPlaying = true;
         _playerState = PlayerState.playing;
         curr_id = idx;
+        playingSongName = songnm;
       });
     } else {
       print('play failed .. result : ${result}');
@@ -318,6 +327,7 @@ class _AudioListState extends State<AudioList> {
         isPlaying = false;
         _playerState = PlayerState.stopped;
         _position = new Duration();
+        playingSongName = '';
       });
     }
     return result;
@@ -334,6 +344,7 @@ class _AudioListState extends State<AudioList> {
     String trimmedsongname = songnm.replaceAll(new RegExp(r"\s+\b|\b\s"), "");
     File file = new File('$dir/$trimmedsongname');
     if (file.existsSync()) {
+      print('duration------- check');
       var returnObject = [];
       returnObject.add(file.path);
       returnObject.add(_duration);

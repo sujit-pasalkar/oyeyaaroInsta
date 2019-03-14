@@ -64,7 +64,7 @@ class _RecordClipState extends State<RecordClip> {
   void dispose() async {
     super.dispose();
     if (audioPlayer != null) audioPlayer.stop();
-    if (await audioRecorder.isRecording) audioRecorder.stop();
+    if (await AudioRecorder.isRecording) AudioRecorder.stop();
     if (animation.isActive) animation.cancel();
   }
 
@@ -196,7 +196,7 @@ class _RecordClipState extends State<RecordClip> {
 
   Future<void> stopAudioRecording() async {
     try {
-      Recording recording = await audioRecorder.stop();
+      Recording recording = await AudioRecorder.stop();
       print("recordingPath: " + recording.path);
       CommonFunctions commonFunctions = new CommonFunctions();
       // String res =
@@ -225,7 +225,7 @@ class _RecordClipState extends State<RecordClip> {
     });
 
     try {
-      await audioRecorder.start(path: recordingPath);
+      await AudioRecorder.start(path: recordingPath);
     } on Exception catch (e) {
       CommonFunctions.showSnackbar(context, e.toString());
       return null;

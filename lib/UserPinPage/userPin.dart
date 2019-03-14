@@ -105,7 +105,8 @@ class _UserPinPageState extends State<UserPinPage> {
                   )
                 ],
               )
-            : Center(child: CircularProgressIndicator()));
+            : Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(
+                        Color(0xffb00bae3)))));
   }
 
   clearSharedPref() async {

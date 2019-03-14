@@ -294,17 +294,37 @@ class ProfilePageState extends State<ProfilePage>
                                     children: <Widget>[
                                       GestureDetector(
                                         child: Container(
-                                          height: 225.0,
-                                          decoration: BoxDecoration(
-                                            color: Colors.black,
-                                            image: DecorationImage(
-                                              fit: BoxFit.cover,
-                                              image: NetworkImage(
-                                                _imageNow,
+                                            height: 225.0,
+                                            decoration: BoxDecoration(
+                                              color: Colors.black,
+                                              image: DecorationImage(
+                                                fit: BoxFit.cover,
+                                                image: NetworkImage(
+                                                  _imageNow,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ),
+                                            // child:Text(_imageNow.toString(),style: TextStyle(color: Colors.white),)
+                                            // child: CachedNetworkImage(
+                                            //   imageUrl:_imageNow,
+                                            //   placeholder: Padding(
+                                            //     padding: EdgeInsets.all(15),
+                                            //     child: SizedBox(
+                                            //       child: CircularProgressIndicator(
+                                            //           valueColor:
+                                            //               new AlwaysStoppedAnimation<
+                                            //                       Color>(
+                                            //                   Color(
+                                            //                       0xffb00bae3)),
+                                            //           strokeWidth: 1.0),
+                                            //     ),
+                                            //   ),
+                                            //   errorWidget: new Icon(
+                                            //     Icons.error,
+                                            //     color: Colors.white,
+                                            //   ),
+                                            // )
+                                            ),
                                         onTap: () => _showImage(_imageNow),
                                       ),
                                       Positioned(
@@ -742,9 +762,9 @@ class ProfilePageState extends State<ProfilePage>
                   alignment: Alignment.center,
                   color: Colors.black.withOpacity(0.50),
                   child: CircularProgressIndicator(
-                              valueColor: new AlwaysStoppedAnimation<Color>(
-                                  Color(0xffb00bae3)),
-                            ),
+                    valueColor:
+                        new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3)),
+                  ),
                 )
               : SizedBox(
                   width: 0.0,
@@ -965,6 +985,7 @@ class ProfilePageState extends State<ProfilePage>
         _uploadImageFile(image).then((onValue) {
           imageCache.clear();
           setState(() {});
+          Navigator.pop(context);
         });
       } else {
         setState(() {
@@ -1045,7 +1066,7 @@ class ProfilePageState extends State<ProfilePage>
         .then((response) {
       var res = jsonDecode(response.body)["data"][0];
       var chatId = res["chat_id"];
-      print(chatId);
+      print("chatId:"+chatId);
       setState(() {
         _loading = false;
       });
@@ -1065,6 +1086,7 @@ class ProfilePageState extends State<ProfilePage>
   }
 
   _showImage(String imageUrl) {
+    print(imageUrl);
     Navigator.of(context).push(
       MaterialPageRoute<bool>(
         builder: (BuildContext context) {
@@ -1086,4 +1108,75 @@ class ProfilePageState extends State<ProfilePage>
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
   }
+  //add for logout alert
+  // smsCodeDialog(_scaffoldKey) {
+  //   print('smsCode == :${this.smsCode_Sent}');
+  //   // this.loading = false;
+  //   return showDialog(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (BuildContext context) {
+  //         return new AlertDialog(
+  //           title: Text('Enter 6-digit Code'),
+  //           content: TextField(
+  //             decoration: InputDecoration(
+  //               labelText: 'Enter OTP',
+  //             ),
+  //             keyboardType: TextInputType.number,
+  //             autofocus: true,
+  //             onChanged: (value) {
+  //               this.smsCode = value;
+  //               //on 6th input auto nav
+  //             },
+  //           ),
+  //           contentPadding: EdgeInsets.all(10.0),
+  //           actions: <Widget>[
+  //             new FlatButton(
+  //               child: Text(
+  //                 'Resend',
+  //                 style: TextStyle(color: Color(0xffb00bae3)),
+  //               ),
+  //               onPressed: () {
+  //                 Navigator.of(context).pop();
+  //                 verifyPhone(_scaffoldKey);
+  //               },
+  //             ),
+  //             new FlatButton(
+  //               child: Text(
+  //                 'Done',
+  //                 style: TextStyle(color: Color(0xffb00bae3)),
+  //               ),
+  //               onPressed: () {
+  //                 setState(() {
+  //                   this.loading = true;
+  //                   // this.loadingMsg = ""
+  //                 });
+  //                 print(this.smsCode.length);
+  //                 if (this.smsCode.length == 6) {
+  //                   FirebaseAuth.instance.currentUser().then((user) {
+  //                     print('user ${user}');
+  //                     if (user != null) {
+  //                       register();
+  //                       print('user:${user}');
+  //                       print("phone" + this.phoneNo);
+  //                     } else {
+  //                       signIn(this.smsCode);
+  //                     }
+  //                   });
+  //                 } else {
+  //                   setState(() {
+  //                     this.loading = false;
+  //                   });
+  //                   print("incorrect otp");
+  //                   final snackBar = SnackBar(
+  //                     content: Text("Enter 6-digit OTP"),
+  //                   );
+  //                   _scaffoldKey.currentState.showSnackBar(snackBar);
+  //                 }
+  //               },
+  //             )
+  //           ],
+  //         );
+  //       });
+  // }
 }

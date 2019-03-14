@@ -8,14 +8,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 final _CreateGroupModel createNewGroup = _CreateGroupModel();
 
 class _CreateGroupModel {
-  getStudentList(val) async {
+  getStudentList() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String userPin = prefs.getString('userPin');
 
     http.Response response = await http.post(
         "http://54.200.143.85:4200/studentList",
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"college": '$val', "userPin": userPin}));
+        body: jsonEncode({"userPin": userPin}));
     var res = jsonDecode(response.body);
     return res['data'];
   }

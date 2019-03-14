@@ -253,6 +253,7 @@ class _AudioRecordingScreenState extends State<AudioRecordingScreen> {
       return Container(
         padding: EdgeInsets.only(top: 5.0),
         child: ListView(
+          controller: widget.hideButtonController,
           children: tracksBuilder(dataList),
         ),
       );

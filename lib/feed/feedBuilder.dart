@@ -141,7 +141,7 @@ class _FeedBuilder extends State<FeedBuilder> {
         },
       ),
       title: Text(username),
-      subtitle: Text("Somehere on earth"),
+      // subtitle: Text("Somehere on earth"),
       // subtitle: Text("in $location"),
       trailing: _menuBuilder(),
     );
