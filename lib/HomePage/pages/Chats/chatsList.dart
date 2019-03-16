@@ -8,7 +8,7 @@ class ListViewPosts extends StatelessWidget {
   final ScrollController hideButtonController;
   final List<ChatModel> posts;
 
-  String avatarUrl = "http://54.200.143.85:4200/profiles/now/";
+  // String avatarUrl = "http://54.200.143.85:4200/profiles/now/";
   ListViewPosts({Key key, this.posts, @required this.hideButtonController})
       : super(key: key);
 
@@ -37,22 +37,52 @@ class ListViewPosts extends StatelessWidget {
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: Container(
-                              margin: EdgeInsets.all(2.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                image: DecorationImage(
-                                  fit: BoxFit.cover,
-                                  image:
-                                      posts[position].isNowImg
-                                          ? NetworkImage(
-                                              "http://54.200.143.85:4200/profiles/now/${posts[position].receiverPin}.jpg")
-                                          : NetworkImage(
-                                              "http://54.200.143.85:4200/profiles/then/${posts[position].receiverPin}.jpg"),
+                            child:
+                            Container(
+                                margin: EdgeInsets.all(1.0),
+                                decoration: new BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey[300],
                                 ),
-                              ),
-                            ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(40.0),
+                                  child: CachedNetworkImage(
+                                    imageUrl:'http://54.200.143.85:4200/getAvatarImageNow/${posts[position].receiverPin}',
+                                    fit: BoxFit.cover,
+                                    placeholder: Padding(
+                                      padding: EdgeInsets.all(15),
+                                      child: SizedBox(
+                                        child: CircularProgressIndicator(
+                                            valueColor:
+                                                new AlwaysStoppedAnimation<
+                                                    Color>(Color(0xffb00bae3)),
+                                            strokeWidth: 1.0),
+                                      ),
+                                    ),
+                                    errorWidget: new Icon(
+                                      Icons.error,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                )),
+                            //  Container(
+                            //   margin: EdgeInsets.all(2.0),
+                            //   decoration: BoxDecoration(
+                            //     color: Colors.white,
+                            //     shape: BoxShape.circle,
+                            //     image: DecorationImage(
+                            //       fit: BoxFit.cover,
+                            //       image:
+                            //           // posts[position].isNowImg
+                            //           //     ?
+                            //            NetworkImage( 'http://54.200.143.85:4200/getAvatarImageNow/${posts[position].receiverPin}'
+                            //           //         "http://54.200.143.85:4200/profiles/now/${posts[position].receiverPin}.jpg"
+                            //           )
+                            //           //     : NetworkImage(
+                            //           //         "http://54.200.143.85:4200/profiles/then/${posts[position].receiverPin}.jpg"),
+                            //     ),
+                            //   ),
+                            // ),
                           ),
                         ),
                         onTap: () {

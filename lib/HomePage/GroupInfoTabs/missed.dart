@@ -104,17 +104,14 @@ class PhotosList extends StatelessWidget {
                             decoration: new BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.grey[300],
-                              // image: new DecorationImage(
-                              //   fit: BoxFit.cover,
-                              //   image: new NetworkImage(
-                              //       "http://54.200.143.85:4200/profiles${users[position].thumbnail}"),
-                              // ),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(40.0),
                               child: CachedNetworkImage(
                                 imageUrl:
-                                    'http://54.200.143.85:4200/profiles${users[position].thumbnail}',
+                                    'http://54.200.143.85:4200/getAvatarImageNow/${users[position].UserPin}',
+                                // 'http://54.200.143.85:4200/profiles${users[position].thumbnail}',
+                                fit: BoxFit.cover,
                                 placeholder: Padding(
                                   padding: EdgeInsets.all(15),
                                   child: SizedBox(

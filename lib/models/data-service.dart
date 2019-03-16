@@ -88,6 +88,7 @@ class _DataService {
       'identity': "us-east-1:5d1e290b-0111-4187-9350-f7cd3905f24d",
       'filename': uuid == null ? file.path.split("/").last : uuid+extension
     };
+    print('in dataservice S3():');
     await _channel.invokeMethod('uploadToAmazon', params);
     String uploadedPath =
         "https://s3.amazonaws.com/oyeyaaro/" + (uuid == null ? file.path.split("/").last : uuid+extension);

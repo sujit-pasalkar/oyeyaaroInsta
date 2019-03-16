@@ -18,8 +18,7 @@ class _PlayScreenState extends State<PlayScreen> {
   VideoPlayerController _controller;
   ChewieController _chewieController;
   VoidCallback listener;
-  double aspect; //= 0.6666666667;
-  // = 3/2;
+  double aspect; 
 
   bool showVideo = false;
 
@@ -28,28 +27,38 @@ class _PlayScreenState extends State<PlayScreen> {
     super.initState();
 
     if (widget.type == 'file') {
-      _controller = VideoPlayerController.file(File(widget.url));
+      print('file path : ${widget.url}');
+      _controller =  VideoPlayerController.file(File(widget.url));
     } else {
       _controller = VideoPlayerController.network(widget.url + '?raw=true');
     }
 
     _controller.initialize().then((onValue) {
-      aspect = aspect;//_controller.value.aspectRatio; //10 / 15;
+      print('aspect aratio:${_controller.value.aspectRatio}');
       _chewieController = ChewieController(
         videoPlayerController: _controller,
-        aspectRatio:aspect,// _controller.value.aspectRatio,
-        autoPlay: true,
+        aspectRatio: _controller.value.aspectRatio,
+        autoPlay: false,
         looping: false,
       );
 
-      _chewieController.addListener(() {
+      _controller.addListener((){
+        print('in controller addlistener.................................................');
         if (_controller.value.position.inMilliseconds >=
             _controller.value.duration.inMilliseconds) {
-          // Navigator.of(context).pop(); //shows blank screen
-          _chewieController.pause(); //not working
-          _controller.pause();
+              print('${_controller.value.position.inMilliseconds}: ${_controller.value.duration.inMilliseconds}');
+          Navigator.of(context).pop(); 
         }
       });
+
+    //   _chewieController.addListener(() {
+    //     if (_controller.value.position.inMilliseconds >=
+    //         _controller.value.duration.inMilliseconds) {
+    //       Navigator.of(context).pop(); 
+    // // _controller.dispose();
+    // // _chewieController.dispose();
+    //     }
+    //   });
 
       setState(() {
         showVideo = true;
@@ -65,7 +74,6 @@ class _PlayScreenState extends State<PlayScreen> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    _chewieController.toggleFullScreen();
     _controller.removeListener(listener);
     _chewieController.removeListener(listener);
     _controller.dispose();
@@ -76,29 +84,44 @@ class _PlayScreenState extends State<PlayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData queryData;
-    queryData = MediaQuery.of(context);
-    aspect =queryData.size.width/queryData.size.height;
+    // MediaQueryData queryData;
+    // queryData = MediaQuery.of(context);
+    // aspect =queryData.size.width/queryData.size.height;
     return new MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.black,
-        // appBar: new AppBar(
-        //   title: new Text(
-        //     // queryData.size.width.toString()+":"+queryData.size.height.toString(),
-        //     "Video",
-        //     style: TextStyle(fontSize: 22.0),
-        //   ),
-        //   backgroundColor: Color(0xffb00bae3).withOpacity(1),
-        // ),
-        body: Center(
-          child: showVideo
-              ? Chewie(
+        body: 
+        Center(
+          child: 
+          //  _controller.value.initialized
+          //     ? AspectRatio(
+          //         aspectRatio: _controller.value.aspectRatio,
+          //         child: VideoPlayer(_controller),
+          //       )
+          //     : Container(),
+
+          showVideo
+              ? 
+              Chewie(
                   controller: _chewieController,
                 )
               : CircularProgressIndicator(
                   valueColor:
                       new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))),
         ),
+
+        //   floatingActionButton: FloatingActionButton(
+        //   onPressed: () {
+        //     setState(() {
+        //       _controller.value.isPlaying
+        //           ? _controller.pause()
+        //           : _controller.play();
+        //     });
+        //   },
+        //   child: Icon(
+        //     _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+        //   ),
+        // ),
       ),
     );
   }

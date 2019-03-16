@@ -8,7 +8,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import '../const.dart';
-// import 'package:async/async.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
@@ -19,9 +18,10 @@ import 'package:flutter/services.dart';
 import '../playVideo.dart';
 
 import 'package:audioplayers/audioplayers.dart';
-import '../../pages/showImage.dart';
+import '../../../feed/image_view.dart';
 import '../../../ProfilePage/profile.dart';
 import '../../../models/data-service.dart';
+import '../../../cameraModule/controllers/commonFunctions.dart';
 
 class ChatPrivate extends StatefulWidget {
   final String chatId;
@@ -205,11 +205,16 @@ class ChatPrivateState extends State<ChatPrivate> {
           await ImagePicker.pickImage(source: ImageSource.camera);
 
       int fileSize = await compressedImage.length();
+      print('original img file size : $fileSize');
 
       if ((fileSize / 1024) > 500) {
+        print('compressing img');
         imageFile = await FlutterNativeImage.compressImage(compressedImage.path,
             percentage: 75, quality: 75);
+      int fileSize = await imageFile.length();
+      print('compress img file size : $fileSize');
       } else {
+        print('no img compression');
         imageFile = compressedImage;
       }
       setState(() {
@@ -260,12 +265,22 @@ class ChatPrivateState extends State<ChatPrivate> {
       File originalVideoUrl =
           await ImagePicker.pickVideo(source: ImageSource.camera);
       print('Original Video: ${originalVideoUrl.path}');
-
-      _compressVideo(originalVideoUrl.path).then((value) {
-        print('Compress Video: $value');
+      int fileSize = await originalVideoUrl.length();
+      print(
+          "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
+      CommonFunctions cmf = new CommonFunctions();
+      cmf.compressVideo(originalVideoUrl.path).then((value) async {
         imageFile = new File(value);
+        int fileSize = await imageFile.length();
+        print("Compressed vedio file size: " +
+            (fileSize / 1024).toString() +
+            " KB");
         if (imageFile != null) {
-          uploadVideoFile();
+           http.Response responseTime =
+              await http.get('http://54.200.143.85:4200/time');
+          timestamp = jsonDecode(responseTime.body)['timestamp'];
+          print('Got timestamp : $timestamp');
+          uploadVideoFile(timestamp);
         }
       }).catchError((error) {
         print('Error Compressing: $error');
@@ -286,12 +301,24 @@ class ChatPrivateState extends State<ChatPrivate> {
       File originalVideoUrl =
           await ImagePicker.pickVideo(source: ImageSource.gallery);
       print('Original Video: $originalVideoUrl.path');
-      _compressVideo(originalVideoUrl.path).then((value) {
-        print('Compress Video: $value');
+      int fileSize = await originalVideoUrl.length();
+      print(
+          "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
+      CommonFunctions cmf = new CommonFunctions();
+      cmf.compressVideo(originalVideoUrl.path).then((value) async {
         imageFile = new File(value);
+        int fileSize = await imageFile.length();
+        print("Compressed vedio file size: " +
+            (fileSize / 1024).toString() +
+            " KB");
         // print('${originalVideoUrl.}');
         if (imageFile != null) {
-          uploadVideoFile();
+          http.Response responseTime =
+              await http.get('http://54.200.143.85:4200/time');
+          timestamp = jsonDecode(responseTime.body)['timestamp'];
+          print('Got timestamp : $timestamp');
+
+          uploadVideoFile(timestamp);
         }
       }).catchError((error) {
         print('Error Compressing: $error');
@@ -304,41 +331,37 @@ class ChatPrivateState extends State<ChatPrivate> {
     }
   }
 
-  Future<String> _compressVideo(String originalVideoUrl) async {
-    String compressedVideoUrl;
-    MethodChannel platform = const MethodChannel("plmlogix.recordvideo/info");
+  // Future<String> _compressVideo(String originalVideoUrl) async {
+  //   String compressedVideoUrl;
+  //   MethodChannel platform = const MethodChannel("plmlogix.recordvideo/info");
 
-    print('in _compressVideo : timestamp : $timestamp');
-    http.Response responseTime =
-        await http.get('http://54.200.143.85:4200/time');
-    timestamp = jsonDecode(responseTime.body)['timestamp'];
-    print('Got timestamp : $timestamp');
+  //   print('in _compressVideo : timestamp : $timestamp');
+  //   http.Response responseTime =
+  //       await http.get('http://54.200.143.85:4200/time');
+  //   timestamp = jsonDecode(responseTime.body)['timestamp'];
+  //   print('Got timestamp : $timestamp');
 
-    Map<String, dynamic> data = <String, dynamic>{
-      'originalVideoUrl': originalVideoUrl,
-      'timestamp': timestamp,
-    };
+  //   Map<String, dynamic> data = <String, dynamic>{
+  //     'originalVideoUrl': originalVideoUrl,
+  //     'timestamp': timestamp,
+  //   };
 
-    try {
-      compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
-      print(
-          'got compressedVideoUrl from platform method:  $compressedVideoUrl');
-    } catch (e) {
-      print('error while compressing:$e');
-    }
-    return compressedVideoUrl;
-  }
+  //   try {
+  //     compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
+  //     print(
+  //         'got compressedVideoUrl from platform method:  $compressedVideoUrl');
+  //   } catch (e) {
+  //     print('error while compressing:$e');
+  //   }
+  //   return compressedVideoUrl;
+  // }
 
-  Future uploadVideoFile() async {
+  Future uploadVideoFile(timestamp) async {
     try {
       print('VideoFILE ******: $imageFile , timestamp : $timestamp');
       setState(() {
         this.isLoading = true;
       });
-
-      // http.Response responseTime =
-      //     await http.get('http://54.200.143.85:4200/time');
-      // timestamp = jsonDecode(responseTime.body)['timestamp'];
 
       //s3
       String mediaUrl = await dataService.uploadFileToS3(
@@ -375,13 +398,12 @@ class ChatPrivateState extends State<ChatPrivate> {
         print('$imageUrl');
         onSendMessage(
             mediaUrl,
-            //  "http://54.200.143.85:4200/Media/Videos/${chatId}/${timestamp}.mp4",
             2,
             timestamp,
             thumbUrl);
       });
     } catch (e) {
-      print('err while uploading : ${e}');
+      print('err while uploading : $e');
       setState(() {
         this.isLoading = false;
       });
@@ -643,16 +665,6 @@ class ChatPrivateState extends State<ChatPrivate> {
                           color: greyColor2,
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        // decoration: BoxDecoration(
-                        //   color: Color(0xffb00bae3),
-                        //   borderRadius: isLastMessageRight(index)
-                        //       ? BorderRadius.only(
-                        //           topLeft: Radius.circular(10.0),
-                        //           bottomLeft: Radius.circular(10.0),
-                        //           bottomRight: Radius.circular(20.0),
-                        //         )
-                        //       : BorderRadius.circular(8.0),
-                        // ),
                       ),
                     )
                   : document['type'] == 1
@@ -667,8 +679,9 @@ class ChatPrivateState extends State<ChatPrivate> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ShowImage(
-                                      url: document['msg'],
+                                builder: (context) => 
+                                    ImageViewer(
+                                      imageUrl: document['msg'],
                                     ),
                               ),
                             );
@@ -703,23 +716,11 @@ class ChatPrivateState extends State<ChatPrivate> {
                                     padding:
                                         EdgeInsets.symmetric(vertical: 5.0)),
                                 Material(
-                                  // child: GestureDetector(
-                                  // onTap: () {
-                                  //   print(document['msg']);
-                                  //   Navigator.push(
-                                  //     context,
-                                  //     MaterialPageRoute(
-                                  //       builder: (context) => ShowImage(
-                                  //             url: document['msg'],
-                                  //           ),
-                                  //     ),
-                                  //   );
-                                  // },
                                   child: CachedNetworkImage(
                                     placeholder: Container(
-                                      child: CircularProgressIndicator(),
-                                      // width: 200.0,
-                                      // height: 200.0,
+                                      child: CircularProgressIndicator(valueColor:
+                                              new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xffb00bae3))),
                                       padding: EdgeInsets.all(70.0),
                                       decoration: BoxDecoration(
                                         color: greyColor2,
@@ -1309,8 +1310,9 @@ class ChatPrivateState extends State<ChatPrivate> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ShowImage(
-                                                url: document['msg'],
+                                          builder: (context) => //ShowImage
+                                              ImageViewer(
+                                                imageUrl: document['msg'],
                                               ),
                                         ),
                                       );
@@ -1953,17 +1955,17 @@ class ChatPrivateState extends State<ChatPrivate> {
                     Padding(
                       padding: EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
                     ),
-                    playPauseIcon(listData) 
-                    ? position != null && duration != null
-                          ? Icon(Icons.pause_circle_outline)
-                          : SizedBox(
-                              child: new CircularProgressIndicator(
-                                  valueColor: new AlwaysStoppedAnimation(
-                                      Color(0xffb00bae3)),
-                                  strokeWidth: 1.0),
-                              height: 20.0,
-                              width: 20.0,
-                            )
+                    playPauseIcon(listData)
+                        ? position != null && duration != null
+                            ? Icon(Icons.pause_circle_outline)
+                            : SizedBox(
+                                child: new CircularProgressIndicator(
+                                    valueColor: new AlwaysStoppedAnimation(
+                                        Color(0xffb00bae3)),
+                                    strokeWidth: 1.0),
+                                height: 20.0,
+                                width: 20.0,
+                              )
                         : Image.asset('assets/short.png',
                             width: 25.0, height: 25.0),
                     Padding(

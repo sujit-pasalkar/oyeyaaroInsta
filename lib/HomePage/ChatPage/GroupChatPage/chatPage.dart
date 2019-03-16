@@ -1,4 +1,3 @@
-//check delete from album service, check remove from deleteIndex vaues
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
@@ -15,7 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../groupInfoTabsPage.dart';
 import '../playVideo.dart';
 import 'package:audioplayers/audioplayers.dart';
-import '../../pages/showImage.dart';
+import '../../../feed/image_view.dart';
 import 'package:flutter/services.dart';
 import '../../../ProfilePage/profile.dart';
 import '../../../ProfilePage/memberPictures.dart';
@@ -23,6 +22,7 @@ import 'package:flutter_native_image/flutter_native_image.dart';
 import '../../../models/data-service.dart';
 import 'package:thumbnails/thumbnails.dart';
 import '../../pages/Network/network_screen.dart';
+import '../../../cameraModule/controllers/commonFunctions.dart';
 
 class Choice {
   const Choice({this.title, this.icon});
@@ -145,6 +145,9 @@ class ChatScreenState extends State<Chat> {
   List<dynamic> _songList1;
   List<dynamic> _songList2;
 
+  bool textSending = false;
+
+
   String searchText = "";
   AudioPlayer audioPlayer;
   PlayerState playerState = PlayerState.stopped;
@@ -235,7 +238,6 @@ class ChatScreenState extends State<Chat> {
                         '/homepage', (Route<dynamic> route) => false);
                   },
                 ),
-
                 PopupMenuButton<String>(
                   icon: Icon(
                     Icons.more_vert,
@@ -340,27 +342,6 @@ class ChatScreenState extends State<Chat> {
                           ),
                         ],
                 )
-
-                // PopupMenuButton<Choice>(
-                //   onSelected: onItemMenuPress,
-                //   itemBuilder: (BuildContext context) {
-                //     return choices.map((Choice choice) {
-                //       return PopupMenuItem<Choice>(
-                //           value: choice,
-                //           child: Row(
-                //             children: <Widget>[
-                //               Icon(
-                //                 choice.icon,
-                //                 color: Color(0xffb00bae3),
-                //               ),
-                //               Text(
-                //                 choice.title,
-                //               ),
-                //             ],
-                //           ));
-                //     }).toList();
-                //   },
-                // ),
               ],
               backgroundColor: Color(0xffb00bae3),
             )
@@ -441,7 +422,7 @@ class ChatScreenState extends State<Chat> {
     }
   }
 
-  deleteGroup() async {
+  deleteGp() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String userPin = prefs.getString('userPin');
 
@@ -452,11 +433,85 @@ class ChatScreenState extends State<Chat> {
     var res = jsonDecode(response.body);
     print('delete group res :$res');
     Navigator.pop(context);
+  }
 
-    // if (res['success']) {
-    //   return true;
-    // } else
-    //   return false;
+  //confirm delet group
+  deleteGroup() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            contentPadding:
+                EdgeInsets.only(left: 0.0, right: 0.0, top: 0.0, bottom: 0.0),
+            children: <Widget>[
+              Container(
+                color: Color(0xffb00bae3),
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: <Widget>[
+                    Text(
+                      "Delete '${widget.name}' group?",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 50,
+                child: Row(
+                  children: <Widget>[
+                    SimpleDialogOption(
+                      onPressed: () {
+                        print('pressed cancel');
+                        Navigator.pop(context, 0);
+                      },
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            child: Icon(
+                              Icons.cancel,
+                              color: Color(0xffb00bae3),
+                            ),
+                            margin: EdgeInsets.only(right: 10.0),
+                          ),
+                          Text(
+                            'CANCEL',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          )
+                        ],
+                      ),
+                    ),
+                    SimpleDialogOption(
+                      onPressed: () {
+                        print('pressed yes');
+                        Navigator.pop(context, 0);
+                        deleteGp();
+                      },
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            child: Icon(
+                              Icons.check_circle,
+                              color: Color(0xffb00bae3),
+                            ),
+                            margin: EdgeInsets.only(right: 10.0),
+                          ),
+                          Text(
+                            'DELETE',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          );
+        });
   }
 
   void _initAudioPlayer() {
@@ -537,9 +592,6 @@ class ChatScreenState extends State<Chat> {
 
   Future getCameraImage() async {
     try {
-      //  setState(() {
-      //   isLoading = true;
-      // });
       print('in getCameraImage');
       File compressedImage =
           await ImagePicker.pickImage(source: ImageSource.camera);
@@ -563,9 +615,6 @@ class ChatScreenState extends State<Chat> {
 
   Future getGalleryImage() async {
     try {
-      //     setState(() {
-      //   isLoading = true;
-      // });
       print('in getGalleryImage');
       File compressedImage =
           await ImagePicker.pickImage(source: ImageSource.gallery);
@@ -595,35 +644,16 @@ class ChatScreenState extends State<Chat> {
       print('in get camera video');
       var originalVideoUrl =
           await ImagePicker.pickVideo(source: ImageSource.camera);
-
-      _compressVideo(originalVideoUrl.path).then((value) {
+      int fileSize = await originalVideoUrl.length();
+      print(
+          "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
+      CommonFunctions cmf = new CommonFunctions();
+      cmf.compressVideo(originalVideoUrl.path).then((value) async {
         imageFile = new File(value);
-        if (imageFile != null) {
-          uploadVideoFile(imageFile);
-        }
-      }).catchError((error) {
-        print('Error Compressing: ${error}');
-      });
-    } catch (e) {
-      print('error while opening: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future getGalleryVideo() async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-      print('in get Gallery video');
-
-      var originalVideoUrl =
-          await ImagePicker.pickVideo(source: ImageSource.gallery);
-
-      _compressVideo(originalVideoUrl.path).then((value) {
-        imageFile = new File(value);
+        int fileSize = await imageFile.length();
+        print("Compressed vedio file size: " +
+            (fileSize / 1024).toString() +
+            " KB");
         if (imageFile != null) {
           uploadVideoFile(imageFile);
         }
@@ -638,26 +668,59 @@ class ChatScreenState extends State<Chat> {
     }
   }
 
-  Future<String> _compressVideo(String originalVideoUrl) async {
-    print('in compress vedio');
-    var compressedVideoUrl;
-    var platform = const MethodChannel("plmlogix.recordvideo/info");
-
-    var data = <String, dynamic>{
-      'originalVideoUrl': originalVideoUrl,
-    };
-
+  Future getGalleryVideo() async {
+    print('in get Gallery video');
     try {
-      compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
+      setState(() {
+        isLoading = true;
+      });
+
+      var originalVideoUrl =
+          await ImagePicker.pickVideo(source: ImageSource.gallery);
+      int fileSize = await originalVideoUrl.length();
+      print("Original vedio file size: " + (fileSize / 1024).toString() + " KB");
+
+      CommonFunctions cmf = new CommonFunctions();
+      cmf.compressVideo(originalVideoUrl.path).then((value) async {
+        imageFile = new File(value);
+        int fileSize = await imageFile.length();
+        print("Compressed vedio file size: " +
+            (fileSize / 1024).toString() +
+            " KB");
+        if (imageFile != null) {
+          uploadVideoFile(imageFile,);
+        }
+      }).catchError((error) {
+        print('Error Compressing: $error');
+      });
     } catch (e) {
-      print('error while compressing:$e');
+      print('error while opening: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
-    return compressedVideoUrl;
   }
+
+  // Future<String> _compressVideo(String originalVideoUrl) async {
+  //   print('in compress vedio');
+  //   var compressedVideoUrl;
+  //   var platform = const MethodChannel("plmlogix.recordvideo/info");
+
+  //   var data = <String, dynamic>{
+  //     'originalVideoUrl': originalVideoUrl,
+  //   };
+
+  //   try {
+  //     compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
+  //   } catch (e) {
+  //     print('error while compressing:$e');
+  //   }
+  //   return compressedVideoUrl;
+  // }
 
   Future uploadVideoFile(imageFile) async {
     try {
-      print('VideoFILE ******: ${imageFile}');
+      print('VideoFILE **: $imageFile');
       setState(() {
         this.isLoading = true;
       });
@@ -665,11 +728,12 @@ class ChatScreenState extends State<Chat> {
       http.Response responseTime =
           await http.get('http://54.200.143.85:4200/time');
       timestamp = jsonDecode(responseTime.body)['timestamp'];
+      print('get timestamp res :  $timestamp');
 
       //s3
       String mediaUrl = await dataService.uploadFileToS3(
           imageFile, 'videos/${widget.peerId}/' + timestamp, '.mp4');
-      print('$mediaUrl');
+      print('Uploaded to s3 url:$mediaUrl');
 
       //video thumb  s3
       String thumb = await Thumbnails.getThumbnail(
@@ -677,9 +741,11 @@ class ChatScreenState extends State<Chat> {
           videoFile: imageFile.path,
           imageType: ThumbFormat.PNG,
           quality: 30);
+          print('video thumbnail created');
 
       String thumbUrl = await dataService.uploadFileToS3(
           File(thumb), 'videos/${widget.peerId}/' + timestamp, ".jpeg");
+          print('video thumbnail uploaded to s3: $thumbUrl');
 
       print("uploaded video mediaUrl: " + mediaUrl);
       print("uploaded video thumbUrl: " + thumbUrl);
@@ -690,19 +756,17 @@ class ChatScreenState extends State<Chat> {
               headers: {"Content-Type": "application/json"},
               body: jsonEncode({
                 "timestamp": timestamp,
-                // "url": mediaUrl,
                 "dialogId": widget.peerId,
                 "senderId": this.myId,
                 "type": "group"
               }));
 
-      print('uploadImage res : $response');
+      print('uploadVideo service  res : $response');
 
       setState(() {
-        print('$imageUrl');
+        // print('$imageUrl');
         onSendMessage(
             mediaUrl,
-            //  "http://54.200.143.85:4200/Media/Videos/${chatId}/${timestamp}.mp4",
             2,
             timestamp,
             thumbUrl);
@@ -734,7 +798,6 @@ class ChatScreenState extends State<Chat> {
           await http.post("http://54.200.143.85:4200/uploadImages",
               headers: {"Content-Type": "application/json"},
               body: jsonEncode({
-                // "url": mediaUrl,
                 "timestamp": timestamp,
                 "dialogId": widget.peerId,
                 "senderId": this.myId,
@@ -755,6 +818,9 @@ class ChatScreenState extends State<Chat> {
   }
 
   void onTextMessage(String content, int type) async {
+     setState((){
+        textSending = true;
+      });
     var result = await http.get('http://54.200.143.85:4200/time');
     var res = jsonDecode(result.body);
     timestamp = res['timestamp'];
@@ -781,12 +847,18 @@ class ChatScreenState extends State<Chat> {
           },
         );
       }).then((onValue) {
-        print('${content} sent');
+        print('$content sent');
+        setState((){
+        textSending = false;
+      });
       });
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       Fluttertoast.showToast(msg: 'Nothing to send');
+      setState((){
+        textSending = false;
+      });
     }
   }
 
@@ -820,11 +892,6 @@ class ChatScreenState extends State<Chat> {
                 'senderName': this.myName,
                 'groupName': widget.name,
                 'thumbnail': thumbUrl,
-                // "http://54.200.143.85:4200/Media/Frames/" +
-                //     widget.peerId +
-                //     "/" +
-                //     time +
-                //     "_1.jpg"
               },
             );
           }).then((onValue) {
@@ -935,12 +1002,11 @@ class ChatScreenState extends State<Chat> {
                             adddeleteMsgIdx(index, document['timestamp'], 1);
                           },
                           onTap: () {
-                            // print(document['msg']);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ShowImage(
-                                      url: document['msg'],
+                                builder: (context) => ImageViewer(
+                                      imageUrl: document['msg'],
                                     ),
                               ),
                             );
@@ -1383,7 +1449,7 @@ class ChatScreenState extends State<Chat> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                isLastMessageLeft(index)
+                isLastMessageLeft(index) && this.type == 10
                     ? new GestureDetector(
                         onTap: () {
                           print('open this user profile');
@@ -1416,9 +1482,8 @@ class ChatScreenState extends State<Chat> {
                                   borderRadius: BorderRadius.circular(40.0),
                                   child: CachedNetworkImage(
                                     imageUrl:
-                                        'http://54.200.143.85:4200/profiles/now/' +
-                                            document['senderId'] +
-                                            '.jpg',
+                                        'http://54.200.143.85:4200/getAvatarImageNow/${document['senderId']}',
+                                    fit: BoxFit.cover,
                                     placeholder: Padding(
                                       padding: EdgeInsets.all(15),
                                       child: SizedBox(
@@ -1524,8 +1589,8 @@ class ChatScreenState extends State<Chat> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ShowImage(
-                                                url: document['msg'],
+                                          builder: (context) => ImageViewer(
+                                                imageUrl: document['msg'],
                                               ),
                                         ),
                                       );
@@ -2117,7 +2182,6 @@ class ChatScreenState extends State<Chat> {
               },
               onLongPress: () {
                 print("onLongPress"); //add loading true
-
                 onTextMessage(
                     "http://54.200.143.85:4200/Audio/" + listData.toString(),
                     4);
@@ -2154,7 +2218,6 @@ class ChatScreenState extends State<Chat> {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    // Button send image
                     Material(
                       child: new Container(
                         margin: new EdgeInsets.symmetric(horizontal: 1.0),
@@ -2204,7 +2267,6 @@ class ChatScreenState extends State<Chat> {
               : Text(''),
           Row(
             children: <Widget>[
-              // Button send image
               Padding(
                 padding: EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
               ),
@@ -2225,7 +2287,6 @@ class ChatScreenState extends State<Chat> {
                           hintText: 'Type your message...',
                           hintStyle: TextStyle(color: greyColor),
                         ),
-                        // onChanged: searchOperation,
                         focusNode: focusNode,
                         onChanged: (input) {
                           print(input.length);
@@ -2256,7 +2317,11 @@ class ChatScreenState extends State<Chat> {
                 margin: new EdgeInsets.symmetric(horizontal: 8.0),
                 child: new IconButton(
                   icon: new Icon(Icons.send),
-                  onPressed: () => onTextMessage(textEditingController.text, 0),
+                  onPressed: !textSending ?() {
+                    onTextMessage(textEditingController.text, 0);
+                  } 
+                  :
+                  null,
                   color: Colors.white,
                 ),
               ),
@@ -2370,6 +2435,97 @@ class ChatScreenState extends State<Chat> {
     }
   }
 
+  //confirm delete alert
+  // _logout() {
+  //   showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return SimpleDialog(
+  //           contentPadding:
+  //               EdgeInsets.only(left: 0.0, right: 0.0, top: 0.0, bottom: 0.0),
+  //           children: <Widget>[
+  //             Container(
+  //               color: Color(0xffb00bae3),
+  //               margin: EdgeInsets.all(0.0),
+  //               padding: EdgeInsets.only(bottom: 10.0, top: 10.0),
+  //               height: 80.0,
+  //               child: Column(
+  //                 children: <Widget>[
+  //                   Text(
+  //                     'Logout',
+  //                     style: TextStyle(
+  //                         color: Colors.white,
+  //                         fontSize: 20.0,
+  //                         fontWeight: FontWeight.bold),
+  //                   ),
+  //                   Padding(
+  //                     padding: EdgeInsets.only(bottom: 10),
+  //                   ),
+  //                   Text(
+  //                     'Are you sure to logout from app?',
+  //                     style: TextStyle(color: Colors.white70, fontSize: 14.0),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //             Container(
+  //               height: 50,
+  //               child: Row(
+  //                 children: <Widget>[
+  //                   SimpleDialogOption(
+  //                     onPressed: () {
+  //                       print('pressed cancel');
+  //                       Navigator.pop(context, 0);
+  //                     },
+  //                     child: Row(
+  //                       children: <Widget>[
+  //                         Container(
+  //                           child: Icon(
+  //                             Icons.cancel,
+  //                             color: Color(0xffb00bae3),
+  //                           ),
+  //                           margin: EdgeInsets.only(right: 10.0),
+  //                         ),
+  //                         Text(
+  //                           'CANCEL',
+  //                           style: TextStyle(fontWeight: FontWeight.bold),
+  //                         )
+  //                       ],
+  //                     ),
+  //                   ),
+  //                   SimpleDialogOption(
+  //                     onPressed: () {
+  //                       print('pressed yes');
+  //                       FirebaseAuth.instance.signOut().then((action) {
+  //                         _clearSharedPref();
+  //                         Navigator.of(context).pushNamedAndRemoveUntil(
+  //                             '/loginpage', (Route<dynamic> route) => false);
+  //                       });
+  //                     },
+  //                     child: Row(
+  //                       children: <Widget>[
+  //                         Container(
+  //                           child: Icon(
+  //                             Icons.check_circle,
+  //                             color: Color(0xffb00bae3),
+  //                           ),
+  //                           margin: EdgeInsets.only(right: 10.0),
+  //                         ),
+  //                         Text(
+  //                           'YES',
+  //                           style: TextStyle(fontWeight: FontWeight.bold),
+  //                         )
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             )
+  //           ],
+  //         );
+  //       });
+  // }
+
   deleteMsg() async {
     for (var i = 0; i < this.indexesToDelete.length; i++) {
       await Firestore.instance
@@ -2419,7 +2575,7 @@ class ChatScreenState extends State<Chat> {
       for (var i = 0; i < indexesToDeleteFrmAlbum.length; i++) {
         var item = indexesToDeleteFrmAlbum[i]['timestamp'];
         print('$item');
-        if(indexesToDeleteFrmAlbum[i]['timestamp'] == timestamp){
+        if (indexesToDeleteFrmAlbum[i]['timestamp'] == timestamp) {
           indexesToDeleteFrmAlbum.removeAt(i);
         }
       }

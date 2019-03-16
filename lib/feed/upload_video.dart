@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:convert';
-// import 'package:async/async.dart';
 import '../models/user.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -12,6 +11,7 @@ import 'package:uuid/uuid.dart';
 import 'package:thumbnails/thumbnails.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/data-service.dart';
+import '../cameraModule/controllers/commonFunctions.dart';
 
 class UploadVideo extends StatefulWidget {
   final String tag;
@@ -298,6 +298,7 @@ class _UploadVideo extends State<UploadVideo> {
   void _removeVideo() {
     setState(() {
       videoFile = null;
+      _controller = null;
     });
   }
 
@@ -386,12 +387,13 @@ class _UploadVideo extends State<UploadVideo> {
 
       print("Original file size: " + (fileSize / 1024).toString() + " KB");
 
-      if ((fileSize / 1024) > 2048) {
-        String compressedVideoUrl = await _compressVideo(videoFile.path);
+      // if ((fileSize / 1024) > 2048) {
+        CommonFunctions cmf =new CommonFunctions();
+        String compressedVideoUrl = await cmf.compressVideo(videoFile.path);
         compressedVideo = File(compressedVideoUrl);
-      } else {
-        compressedVideo = videoFile;
-      }
+      // } else {
+      //   compressedVideo = videoFile;
+      // }
 
       fileSize = await compressedVideo.length();
 

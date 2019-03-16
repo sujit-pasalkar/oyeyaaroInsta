@@ -10,6 +10,7 @@ import 'package:share/share.dart';
 import '../../../ProfilePage/profile.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'createNewGroup.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CreateGroup extends StatefulWidget {
   @override
@@ -71,16 +72,19 @@ class CreateGroupState extends State<CreateGroup> {
         body: jsonEncode({"college": '${this.val}', "userPin": userPin}));
     var res = jsonDecode(response.body);
     this.collegeStudentList = res['data'];
+    print('student list res:$collegeStudentList');
     setState(() {
       showLoading = false;
     });
   }
 
-  void values() async{
+  void values() async {
     collegelist = List();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+    String collegeName = prefs.getString('collegeName');
     //call getCollegeList Service
     collegelist.addAll([
-      "PEC",
+      collegeName,
     ]);
 
     for (int i = 0; i < collegelist.length; i++) {
@@ -105,10 +109,11 @@ class CreateGroupState extends State<CreateGroup> {
         _count = 0;
       });
 
-      _check = this.val + " " + _branch + " " + _year;
+      // _check = this.val + " " + _branch + " " + _year;
+      print('$val,$_branch,$_year');
 
       var body3 = jsonEncode({
-        "clg": "$this.val",
+        "clg": "$val",
         "branch": "$_branch",
         "year": "$_year",
       });
@@ -118,18 +123,26 @@ class CreateGroupState extends State<CreateGroup> {
               headers: {"Content-Type": "application/json"}, body: body3)
           .then((response) {
         var res = jsonDecode(response.body);
+        print('checkgroup res : $res');
         setState(() {
           showLoading = false;
         });
-
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => GrpInfoTabsHome(
-                  peerId: res['data']['dialog_id'],
-                  chatType: 'group',
-                  groupName: res['data']['name']),
-            ));
+        print("res len :$res['data'].length");
+        if (res['data'] != null) {
+          //&& res['data'].length != 0
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GrpInfoTabsHome(
+                    peerId: res['data']['dialog_id'],
+                    chatType: 'group',
+                    groupName: res['data']['name']),
+              ));
+        } else {
+          Fluttertoast.showToast(
+            msg: "Group not found.",
+          );
+        }
       });
     }
   }
@@ -262,25 +275,38 @@ class CreateGroupState extends State<CreateGroup> {
                                               shape: BoxShape.circle,
                                             ),
                                             child: Container(
-                                              margin: EdgeInsets.all(2.0),
-                                              decoration: new BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.grey,
-                                                image: new DecorationImage(
-                                                  fit: BoxFit.cover,
-                                                  image: new NetworkImage(
-                                                      searchresult[index]
-                                                                  ['ImageNow']
-                                                              .contains(
-                                                                  'default')
-                                                          ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                                          : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"
-
-                                                      // "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                                      ),
+                                                margin: EdgeInsets.all(1.0),
+                                                decoration: new BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.grey[300],
                                                 ),
-                                              ),
-                                            ),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          40.0),
+                                                  child: CachedNetworkImage(
+                                                    imageUrl:
+                                                        "http://54.200.143.85:4200/getAvatarImageNow/${searchresult[index]['PinCode']}",
+                                                    fit: BoxFit.cover,
+                                                    placeholder: Padding(
+                                                      padding:
+                                                          EdgeInsets.all(15),
+                                                      child: SizedBox(
+                                                        child: CircularProgressIndicator(
+                                                            valueColor:
+                                                                new AlwaysStoppedAnimation<
+                                                                        Color>(
+                                                                    Color(
+                                                                        0xffb00bae3)),
+                                                            strokeWidth: 1.0),
+                                                      ),
+                                                    ),
+                                                    errorWidget: new Icon(
+                                                      Icons.error,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                )),
                                           ),
                                         ),
                                         onTap: () {
@@ -352,7 +378,6 @@ class CreateGroupState extends State<CreateGroup> {
                       : this.typing || !showStudentSearch
                           ? Flexible(
                               child: ListView.builder(
-                                // shrinkWrap: true,
                                 itemCount: searchresultforClg.length,
                                 itemBuilder: (BuildContext context, int index) {
                                   String listData = searchresultforClg[index];
@@ -369,8 +394,6 @@ class CreateGroupState extends State<CreateGroup> {
                                   );
                                 },
                               ),
-                              // ],
-                              // )
                             )
                           : Container(),
 
@@ -480,11 +503,10 @@ class CreateGroupState extends State<CreateGroup> {
 
   invite(userPin) {
     Share.share(
-        'You are invited to join your classmates @OyeYaaro. Download  this App by www.webworldindia.com/connectyaar/app use PIN #${userPin} to login.See you in the room chat! ');
+        'You are invited to join your classmates @OyeYaaro. Download this App using http://oyeyaaro.plmlogix.com/download use PIN #$userPin to login.See you in the room chat!');
   }
 
   Future<void> chat(context, id, name, Mobile) async {
-    // print(id);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String userpin = prefs.getString('userPin');
     String userName = prefs.getString('userName');
@@ -532,7 +554,6 @@ class CreateGroupState extends State<CreateGroup> {
         searchresultforClg.add(data);
       }
     }
-    // print('searchR: ${searchresult}');
   }
 
   void searchOperation(String searchText) {
@@ -561,6 +582,7 @@ class CreateGroupState extends State<CreateGroup> {
   }
 
   tapOnCollege(value) async {
+    print('tapp on clg value: $value');
     setState(() {
       this.val = value;
       showLoading = true;
@@ -577,7 +599,7 @@ class CreateGroupState extends State<CreateGroup> {
             headers: {"Content-Type": "application/json"}, body: body)
         .then((response) {
       var res = jsonDecode(response.body);
-      print('res: $res');
+      print('yearAndBatch res: $res');
       setState(() {
         this.year = res['data']['Years'];
         this.branch = res['data']['Streams'];

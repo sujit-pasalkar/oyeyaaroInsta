@@ -13,7 +13,8 @@ class ImageViewer extends StatelessWidget {
       child: Container(
         child: PhotoView(
           heroTag: imageUrl,
-          imageProvider: CachedNetworkImageProvider(imageUrl),
+          imageProvider: NetworkImage(imageUrl),
+          //CachedNetworkImageProvider(imageUrl),
           minScale: PhotoViewComputedScale.contained * 1,
           maxScale: 4.0,
         ),

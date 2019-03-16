@@ -154,6 +154,11 @@ class _LoginPageState extends State<LoginPage> {
                         print('user:${user}');
                         print("phone" + this.phoneNo);
                       } else {
+                        // final snackBar = SnackBar(
+                        //   content: Text("Login failed."),
+                        // );
+                        // _scaffoldKey.currentState.showSnackBar(snackBar);
+                        // Navigator.of(context).pop();
                         signIn(this.smsCode);
                       }
                     });

@@ -84,7 +84,7 @@ class _FeedBuilder extends State<FeedBuilder> {
   Map likes;
   int likeCount;
 
-  String avatarUrl;
+  // String avatarUrl;
 
   bool liked;
   bool showHeart = false;
@@ -106,7 +106,7 @@ class _FeedBuilder extends State<FeedBuilder> {
 
   @override
   void initState() {
-    avatarUrl = "http://54.200.143.85:4200/profiles/now/$ownerId.jpg";
+    // avatarUrl = "http://54.200.143.85:4200/getProfileImageNow/$ownerId";
     time = _calculateTime();
     super.initState();
   }
@@ -119,16 +119,57 @@ class _FeedBuilder extends State<FeedBuilder> {
   buildPostHeader() {
     return ListTile(
       leading: InkWell(
-        child: CircleAvatar(
-          backgroundImage: CachedNetworkImageProvider(
-            avatarUrl,
-            errorListener: () {
-              setState(() {
-                avatarUrl = avatarUrl.replaceAll('now', 'then');
-              });
-            },
-          ),
-        ),
+        child: Container(
+          height: 50,
+          width: 50,
+            decoration: new BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey[300],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40.0),
+              child:Image(
+                image: 
+               NetworkImage('http://54.200.143.85:4200/getAvatarImageNow/$ownerId'),
+               fit: BoxFit.cover,
+              )
+              // CachedNetworkImage
+              // (
+                // imageUrl:
+                //     "http://54.200.143.85:4200/getAvatarImageNow/$ownerId",
+                //     fit: BoxFit.cover,
+                //     alignment: Alignment.center,
+                // placeholder: Padding(
+                //   padding: EdgeInsets.all(15),
+                //   child: SizedBox(
+                //     child: CircularProgressIndicator(
+                //         valueColor: new AlwaysStoppedAnimation<Color>(
+                //             Color(0xffb00bae3)),
+                //         strokeWidth: 1.0),
+                //   ),
+                // ),
+                // errorWidget: new Icon(
+                //   Icons.error,
+                //   color: Colors.black,
+                // ),
+              ),
+            )
+            ),
+        // CircleAvatar(
+        //   backgroundColor: Colors.white,
+        //   backgroundImage: //CachedNetworkImageProvider
+        //   NetworkImage(
+        //     'http://54.200.143.85:4200/getAvatarImageNow/$ownerId',
+        //     // avatarUrl,
+
+        //     // errorListener: () {
+        //     //   setState(() {
+        //     //     avatarUrl = avatarUrl.replaceAll('now', 'then');
+        //     //   });
+        //     // },
+        //   ),
+        // ),
+
         onTap: () {
           Navigator.push(
             context,
@@ -139,7 +180,7 @@ class _FeedBuilder extends State<FeedBuilder> {
             ),
           );
         },
-      ),
+      // ),
       title: Text(username),
       // subtitle: Text("Somehere on earth"),
       // subtitle: Text("in $location"),
@@ -157,14 +198,6 @@ class _FeedBuilder extends State<FeedBuilder> {
                   aspectRatio: 1,
                   child: Hero(
                     tag: mediaUrl,
-                    // child: CachedNetworkImage(
-                    //   imageUrl: mediaUrl,
-                    //   fit: BoxFit.cover,
-                    //   placeholder: Image(
-                    //     image: AssetImage("assets/loading.gif"),
-                    //   ),
-                    //   errorWidget: Icon(Icons.error),
-                    // ),
                     child: S3Image(
                       filename: mediaUrl,
                       placeholder: Image(
@@ -181,14 +214,6 @@ class _FeedBuilder extends State<FeedBuilder> {
                   children: <Widget>[
                     AspectRatio(
                       aspectRatio: 1,
-                      // child: CachedNetworkImage(
-                      //   imageUrl: mediaUrl.replaceFirst(".mp4", ".png"),
-                      //   fit: BoxFit.cover,
-                      //   placeholder: Image(
-                      //     image: AssetImage("assets/loading.gif"),
-                      //   ),
-                      //   errorWidget: Icon(Icons.error),
-                      // ),
                       child: S3Image(
                         filename: mediaUrl.replaceFirst(".mp4", ".png"),
                         placeholder: Image(

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'createNewGroupModel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:connect_yaar/home.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../ProfilePage/profile.dart';
+
 
 class CreateNewGroup extends StatefulWidget {
   // final val;
@@ -140,7 +143,9 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
                               }
                             },
                             child: ListTile(
-                                leading: Container(
+                                leading: 
+                                GestureDetector( child: 
+                                Container(
                                   width: 50.0,
                                   height: 50.0,
                                   decoration: new BoxDecoration(
@@ -154,27 +159,68 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Container(
-                                      margin: EdgeInsets.all(2.0),
-                                      decoration: new BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.grey,
-                                        image: new DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: new NetworkImage(searchresult[
-                                                      index]['ImageNow']
-                                                  .contains('default')
-                                              ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                              : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"),
-                                        ),
-                                      ),
+                              margin: EdgeInsets.all(2.0),
+                              decoration: new BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey[300],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(40.0),
+                                child: CachedNetworkImage(
+                                  imageUrl: 
+                                  // !searchresult[index]
+                                  //         ['ImageThen']
+                                  //         .contains('default')
+                                  //     ? 
+                                  'http://54.200.143.85:4200/getAvatarImageNow/${searchresult[index]['PinCode']}',
+                                      // "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
+                                      // : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}",
+                                      fit: BoxFit.cover,
+                                  placeholder: Padding(
+                                    padding: EdgeInsets.all(15),
+                                    child: SizedBox(
+                                      child: CircularProgressIndicator(
+                                          valueColor:
+                                              new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xffb00bae3)),
+                                          strokeWidth: 1.0),
                                     ),
                                   ),
+                                  errorWidget: new Icon(
+                                    Icons.error,
+                                    color: Colors.black,
+                                  ),
                                 ),
-                                // onTap: () {
-                                //   // profile
-                                //   print("${searchresult[index]['PinCode']}");
-                                // }
+                              ),
+                            ),
+                                    // child: Container(
+                                    //   margin: EdgeInsets.all(2.0),
+                                    //   decoration: new BoxDecoration(
+                                    //     shape: BoxShape.circle,
+                                    //     color: Colors.grey,
+                                    //     image: new DecorationImage(
+                                    //       fit: BoxFit.cover,
+                                    //       image: new NetworkImage(searchresult[
+                                    //                   index]['ImageNow']
+                                    //               .contains('default')
+                                    //           ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
+                                    //           : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"),
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                  ),
+                                ),
+                                onTap: () {
+                                  print("${searchresult[index]['PinCode']}");
+                                  Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ProfilePage(
+                                      userPin: searchresult[index]['PinCode'])));
+                                }
+                                ),
                                 // ),
+                                
                                 title: searchresult[index]['Name'] == null
                                     ? Text(
                                         'Name not found',
@@ -259,14 +305,18 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
                                         margin: EdgeInsets.all(2.0),
                                         decoration: new BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.grey,
+                                          color: Colors.grey[300],
                                           image: new DecorationImage(
                                             fit: BoxFit.cover,
-                                            image: new NetworkImage(searchresult[
-                                                        index]['ImageNow']
-                                                    .contains('default')
-                                                ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                                : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"),
+                                            image: new NetworkImage(
+                                              'http://54.200.143.85:4200/getAvatarImageNow/${searchresult[index]['PinCode']}',
+                                              
+                                              // searchresult[
+                                              //           index]['ImageNow']
+                                              //       .contains('default')
+                                              //   ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
+                                              //   : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"
+                                              ),
                                           ),
                                         ),
                                       ),

@@ -16,6 +16,7 @@ class UserFeedBuilder extends StatefulWidget {
   final String mediaUrl;
   final String postId;
   final String ownerId;
+  final String visibility;
   final int timestamp;
   final likes;
 
@@ -30,6 +31,7 @@ class UserFeedBuilder extends StatefulWidget {
     this.postId,
     this.ownerId,
     this.ref,
+    this.visibility,
     this.timestamp,
   }) : super(key: UniqueKey());
 
@@ -42,6 +44,7 @@ class UserFeedBuilder extends StatefulWidget {
       likes: data['likes'],
       ownerId: data['ownerId'],
       postId: data['postId'],
+      visibility: data['visibility'],
       timestamp: data['timestamp'],
       ref: data['refresh'],
     );
@@ -72,6 +75,7 @@ class UserFeedBuilder extends StatefulWidget {
         likes: this.likes,
         likeCount: this.getLikeCount(this.likes),
         timestamp: this.timestamp,
+        visibility: this.visibility,
       );
 }
 
@@ -83,6 +87,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
   final String postId;
   final String ownerId;
   final int timestamp;
+  String visibility;
   String time;
   Map likes;
   int likeCount;
@@ -104,6 +109,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
     this.mediaUrl,
     this.likes,
     this.likeCount,
+    this.visibility,
     this.timestamp,
   });
 
@@ -115,18 +121,26 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
   }
 
   buildPostHeader() {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: CachedNetworkImageProvider(
-          avatarUrl,
-        ),
-      ),
-      title: Text(username),
-      // subtitle: Text("Somehere on earth"),
-      // subtitle: Text("in $location"),
-      trailing: _menuBuilder(),
-    );
-  }
+   String visible;
+   if (visibility == 'Public') {
+     visible = 'Public';
+   } else if (visibility == currentUser.collegeName) {
+     visible = 'College';
+   } else {
+     visible = 'Class';
+   }
+   return ListTile(
+     leading: 
+     CircleAvatar(
+       backgroundImage: CachedNetworkImageProvider(
+         avatarUrl,
+       ),
+     ),
+     title: Text(username),
+     subtitle: Text("Visible to: $visible"),
+     trailing: _menuBuilder(),
+   );
+ }
 
   buildLikeableImge() {
     return Stack(
@@ -494,7 +508,9 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
                   await reference
                       .document(postId)
                       .updateData({'visibility': currentUser.groupId});
-                  setState(() {});
+                  setState(() {
+                    visibility = currentUser.groupId;
+                  });
                 },
               ),
               Divider(),
@@ -512,7 +528,9 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
                   await reference
                       .document(postId)
                       .updateData({'visibility': currentUser.collegeName});
-                  setState(() {});
+                  setState(() {
+                    visibility = currentUser.collegeName;
+                  });
                 },
               ),
               Divider(),
@@ -530,7 +548,9 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
                   await reference
                       .document(postId)
                       .updateData({'visibility': 'Public'});
-                  setState(() {});
+                  setState(() {
+                    visibility = "Public";
+                  });
                 },
               ),
             ],

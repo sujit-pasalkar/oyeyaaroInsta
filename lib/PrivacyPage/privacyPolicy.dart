@@ -104,18 +104,6 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage>
                     child: CircleAvatar(
                       backgroundColor: Colors.white,
                       radius: 50.0,
-                      // child: ShaderMask(
-                      //   blendMode: BlendMode.srcIn,
-                      //   shaderCallback: (Rect bounds) {
-                      //     return ui.Gradient.linear(
-                      //       Offset(4.0, 24.0),
-                      //       Offset(24.0, 4.0),
-                      //       [
-                      //         Color(0xffb6de9f5),
-                      //         Color(0xffb98b6fc),
-                      //       ],
-                      //     );
-                      //   },
                       child: Icon(
                         Icons.group,
                         color: Colors.indigo[900],
@@ -126,6 +114,7 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage>
                   ),
                   Padding(padding: EdgeInsets.all(30.0)),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       IconButton(
                         icon: _value1
@@ -147,38 +136,25 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage>
                           ),),
                     ],
                   ),
-                  // new CheckboxListTile(
-                  //   value: _value1,
-                  //   onChanged: _value1Changed,
-                  //   title: new Text(
-                  //       "Please press 'Accept' to accept the Oye Yaaro",
+                  //#privacy policy link
+                  // GestureDetector(
+                  //     onTap: () {
+                  //       print("onTap called.");
+                  //       Navigator.of(context).push(new MaterialPageRoute<Null>(
+                  //           builder: (BuildContext context) {
+                  //             return new ViewPolicy();
+                  //           },
+                  //           fullscreenDialog: true));
+                  //     },
+                  //     child: Text(
+                  //       "Terms of Usage and Privacy Policy.",
+                  //       textAlign: TextAlign.center,
                   //       style: TextStyle(
-                  //         fontWeight: FontWeight.bold,
-                  //         color: Colors.white,
+                  //         decoration: TextDecoration.underline,
+                  //         color: Colors.indigo[900],
                   //         fontSize: 15.0,
-                  //       )),
-                  //   controlAffinity: ListTileControlAffinity.leading,
-                  //   activeColor: Colors.grey,
-                  // ),
-
-                  GestureDetector(
-                      onTap: () {
-                        print("onTap called.");
-                        Navigator.of(context).push(new MaterialPageRoute<Null>(
-                            builder: (BuildContext context) {
-                              return new ViewPolicy();
-                            },
-                            fullscreenDialog: true));
-                      },
-                      child: Text(
-                        "Terms of Usage and Privacy Policy.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          color: Colors.indigo[900],
-                          fontSize: 15.0,
-                        ),
-                      )),
+                  //       ),
+                  //     )),
                   Padding(padding: EdgeInsets.all(10.0)),
                   RaisedButton(
                       child: Text(

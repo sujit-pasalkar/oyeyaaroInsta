@@ -4,7 +4,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 // import 'package:shared_preferences/shared_preferences.dart';
-import '../showImage.dart';
+// import '../showImage.dart';
+import '../../../feed/image_view.dart';
 import './filter.dart';
 
 class ImagesData {
@@ -198,8 +199,9 @@ class _ImagesPageState extends State<ImagesPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ShowImage(
-                      url: imagesData[i].imageUrl,
+                builder: (context) => //ShowImage
+                ImageViewer(
+                      imageUrl: imagesData[i].imageUrl,
                     ),
               ),
             );

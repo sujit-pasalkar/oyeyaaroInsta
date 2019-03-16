@@ -148,7 +148,8 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                       alignment: Alignment.centerLeft,
                       child: Material(
                         color: Colors.transparent,
-                        child: InkWell(
+                        child:
+                        !_isRecording?  InkWell(
                           borderRadius: BorderRadius.all(Radius.circular(50.0)),
                           onTap:allowDeactivate ? () {
                             _navigateAndDisplaySelection(context);
@@ -163,7 +164,8 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                               size: 40.0,
                             ),
                           ),
-                        ),
+                        ):
+                        SizedBox(height: 0,width: 0),
                       ),
                     ),
                     Align(
@@ -177,19 +179,20 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                       alignment: Alignment.centerRight,
                       child: Material(
                         color: Colors.transparent,
-                        child: InkWell(
+                        child:
+                        !_isRecording?  InkWell(
                           borderRadius: BorderRadius.all(Radius.circular(50.0)),
                           onTap: () {
                             if (!_toggleCamera) {
-                              onCameraSelected(cameras[1]);
                               setState(() {
                                 _toggleCamera = true;
                               });
+                              onCameraSelected(cameras[1]);
                             } else {
-                              onCameraSelected(cameras[0]);
                               setState(() {
                                 _toggleCamera = false;
                               });
+                              onCameraSelected(cameras[0]);
                             }
                           },
                           child: Container(
@@ -200,7 +203,9 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                               size: 40.0,
                             ),
                           ),
-                        ),
+                        )
+                        :
+                        SizedBox(height: 0,width: 0),
                       ),
                     ),
                   ],

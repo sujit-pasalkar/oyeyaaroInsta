@@ -127,24 +127,13 @@ class UsersList extends StatelessWidget {
                               decoration: new BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.grey[300],
-                                // image: new DecorationImage(
-                                //   fit: BoxFit.cover,
-                                // image: new NetworkImage(users[position]
-                                //         .imageNow
-                                //         .contains('default')
-                                //     ? "http://54.200.143.85:4200/profiles${users[position].thumbnail}"
-                                //     : "http://54.200.143.85:4200/profiles${users[position].imageNow}"),
-                                // ),
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(40.0),
                                 child: CachedNetworkImage(
-                                  imageUrl: users[position]
-                                          .imageNow
-                                          .contains('default')
-                                      ? "http://54.200.143.85:4200/profiles${users[position].thumbnail}"
-                                      : "http://54.200.143.85:4200/profiles${users[position].imageNow}",
-                                  // 'http://54.200.143.85:4200/profiles${users[position].thumbnail}',
+                                  imageUrl:
+                                      'http://54.200.143.85:4200/getAvatarImageNow/${users[position].UserPin}',
+                                  fit: BoxFit.cover,
                                   placeholder: Padding(
                                     padding: EdgeInsets.all(15),
                                     child: SizedBox(

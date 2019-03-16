@@ -292,6 +292,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+              
               SimpleDialogOption(
                 onPressed: () {
                   Navigator.pop(context, 0);
@@ -330,6 +331,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+
+
             ],
           );
         })) {

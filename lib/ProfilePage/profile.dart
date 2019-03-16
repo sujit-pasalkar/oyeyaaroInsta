@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../feed/userFeeds.dart';
 import '../HomePage/ChatPage/PrivateChatPage/privateChatePage.dart';
 import '../feed/image_view.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
 
 class ProfilePage extends StatefulWidget {
   final String userPin;
@@ -45,6 +46,7 @@ class ProfilePageState extends State<ProfilePage>
 
   String _imageThen;
   String _imageNow;
+  File imageFile;
 
   TabController _tabController;
 
@@ -107,10 +109,11 @@ class ProfilePageState extends State<ProfilePage>
                             child: Container(
                               height: 225.0,
                               decoration: BoxDecoration(
-                                color: Colors.black,
+                                color: Colors.grey[300],
                                 image: DecorationImage(
                                   fit: BoxFit.cover,
-                                  image: CachedNetworkImageProvider(
+                                  image: //CachedNetworkImageProvider
+                                      NetworkImage(
                                     _imageThen,
                                   ),
                                 ),
@@ -157,7 +160,7 @@ class ProfilePageState extends State<ProfilePage>
                             child: Container(
                               height: 225.0,
                               decoration: BoxDecoration(
-                                color: Colors.black,
+                                color: Colors.grey[300],
                                 image: DecorationImage(
                                   fit: BoxFit.cover,
                                   image: NetworkImage(
@@ -245,10 +248,11 @@ class ProfilePageState extends State<ProfilePage>
                                         child: Container(
                                           height: 225.0,
                                           decoration: BoxDecoration(
-                                            color: Colors.black,
+                                            color: Colors.grey[300],
                                             image: DecorationImage(
                                               fit: BoxFit.cover,
-                                              image: CachedNetworkImageProvider(
+                                              image: NetworkImage(
+                                                // 'http://192.168.31.38:4005/getProfileImageNow/12345',
                                                 _imageThen,
                                               ),
                                             ),
@@ -294,37 +298,37 @@ class ProfilePageState extends State<ProfilePage>
                                     children: <Widget>[
                                       GestureDetector(
                                         child: Container(
-                                            height: 225.0,
-                                            decoration: BoxDecoration(
-                                              color: Colors.black,
-                                              image: DecorationImage(
-                                                fit: BoxFit.cover,
-                                                image: NetworkImage(
-                                                  _imageNow,
-                                                ),
-                                              ),
+                                          height: 225.0,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: NetworkImage(
+                                                  // 'http://192.168.31.38:4005/getProfileImageNow/12',
+                                                  // _imageNow,
+                                                  'http://54.200.143.85:4200/getProfileImageNow/${widget.userPin}'),
                                             ),
-                                            // child:Text(_imageNow.toString(),style: TextStyle(color: Colors.white),)
-                                            // child: CachedNetworkImage(
-                                            //   imageUrl:_imageNow,
-                                            //   placeholder: Padding(
-                                            //     padding: EdgeInsets.all(15),
-                                            //     child: SizedBox(
-                                            //       child: CircularProgressIndicator(
-                                            //           valueColor:
-                                            //               new AlwaysStoppedAnimation<
-                                            //                       Color>(
-                                            //                   Color(
-                                            //                       0xffb00bae3)),
-                                            //           strokeWidth: 1.0),
-                                            //     ),
-                                            //   ),
-                                            //   errorWidget: new Icon(
-                                            //     Icons.error,
-                                            //     color: Colors.white,
-                                            //   ),
-                                            // )
-                                            ),
+                                          ),
+                                          // child: CachedNetworkImage(
+                                          //   imageUrl:_imageNow,
+                                          //   placeholder: Padding(
+                                          //     padding: EdgeInsets.all(15),
+                                          //     child: SizedBox(
+                                          //       child: CircularProgressIndicator(
+                                          //           valueColor:
+                                          //               new AlwaysStoppedAnimation<
+                                          //                       Color>(
+                                          //                   Color(
+                                          //                       0xffb00bae3)),
+                                          //           strokeWidth: 1.0),
+                                          //     ),
+                                          //   ),
+                                          //   errorWidget: new Icon(
+                                          //     Icons.error,
+                                          //     color: Colors.white,
+                                          //   ),
+                                          // )
+                                        ),
                                         onTap: () => _showImage(_imageNow),
                                       ),
                                       Positioned(
@@ -981,11 +985,26 @@ class ProfilePageState extends State<ProfilePage>
     });
     try {
       File image = await ImagePicker.pickImage(source: ImageSource.gallery);
+      int fileSize = await image.length();
+      print('original img: $image || size : $fileSize');
+
+      //
       if (image != null) {
-        _uploadImageFile(image).then((onValue) {
+        if ((fileSize / 1024) > 500) {
+          print('compressing image');
+          imageFile = await FlutterNativeImage.compressImage(image.path,
+              percentage: 75, quality: 75);
+          int fileSize = await imageFile.length();
+
+          print('cpmpress img path: $imageFile ||size :$fileSize');
+        } else {
+          print('not compressing image');
+          imageFile = image;
+        }
+
+        _uploadImageFile(imageFile).then((onValue) {
           imageCache.clear();
           setState(() {});
-          Navigator.pop(context);
         });
       } else {
         setState(() {
@@ -1066,7 +1085,7 @@ class ProfilePageState extends State<ProfilePage>
         .then((response) {
       var res = jsonDecode(response.body)["data"][0];
       var chatId = res["chat_id"];
-      print("chatId:"+chatId);
+      print("chatId:" + chatId);
       setState(() {
         _loading = false;
       });
@@ -1096,87 +1115,107 @@ class ProfilePageState extends State<ProfilePage>
     );
   }
 
-  _logout() {
-    FirebaseAuth.instance.signOut().then((action) {
-      _clearSharedPref();
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          '/loginpage', (Route<dynamic> route) => false);
-    });
-  }
+  // _logout() {
+  //   FirebaseAuth.instance.signOut().then((action) {
+  //     _clearSharedPref();
+  //     Navigator.of(context).pushNamedAndRemoveUntil(
+  //         '/loginpage', (Route<dynamic> route) => false);
+  //   });
+  // }
 
   _clearSharedPref() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
   }
-  //add for logout alert
-  // smsCodeDialog(_scaffoldKey) {
-  //   print('smsCode == :${this.smsCode_Sent}');
-  //   // this.loading = false;
-  //   return showDialog(
-  //       context: context,
-  //       barrierDismissible: false,
-  //       builder: (BuildContext context) {
-  //         return new AlertDialog(
-  //           title: Text('Enter 6-digit Code'),
-  //           content: TextField(
-  //             decoration: InputDecoration(
-  //               labelText: 'Enter OTP',
-  //             ),
-  //             keyboardType: TextInputType.number,
-  //             autofocus: true,
-  //             onChanged: (value) {
-  //               this.smsCode = value;
-  //               //on 6th input auto nav
-  //             },
-  //           ),
-  //           contentPadding: EdgeInsets.all(10.0),
-  //           actions: <Widget>[
-  //             new FlatButton(
-  //               child: Text(
-  //                 'Resend',
-  //                 style: TextStyle(color: Color(0xffb00bae3)),
-  //               ),
-  //               onPressed: () {
-  //                 Navigator.of(context).pop();
-  //                 verifyPhone(_scaffoldKey);
-  //               },
-  //             ),
-  //             new FlatButton(
-  //               child: Text(
-  //                 'Done',
-  //                 style: TextStyle(color: Color(0xffb00bae3)),
-  //               ),
-  //               onPressed: () {
-  //                 setState(() {
-  //                   this.loading = true;
-  //                   // this.loadingMsg = ""
-  //                 });
-  //                 print(this.smsCode.length);
-  //                 if (this.smsCode.length == 6) {
-  //                   FirebaseAuth.instance.currentUser().then((user) {
-  //                     print('user ${user}');
-  //                     if (user != null) {
-  //                       register();
-  //                       print('user:${user}');
-  //                       print("phone" + this.phoneNo);
-  //                     } else {
-  //                       signIn(this.smsCode);
-  //                     }
-  //                   });
-  //                 } else {
-  //                   setState(() {
-  //                     this.loading = false;
-  //                   });
-  //                   print("incorrect otp");
-  //                   final snackBar = SnackBar(
-  //                     content: Text("Enter 6-digit OTP"),
-  //                   );
-  //                   _scaffoldKey.currentState.showSnackBar(snackBar);
-  //                 }
-  //               },
-  //             )
-  //           ],
-  //         );
-  //       });
-  // }
+
+  //confirm logout
+  _logout() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            contentPadding:
+                EdgeInsets.only(left: 0.0, right: 0.0, top: 0.0, bottom: 0.0),
+            children: <Widget>[
+              Container(
+                color: Color(0xffb00bae3),
+                margin: EdgeInsets.all(0.0),
+                padding: EdgeInsets.only(bottom: 10.0, top: 10.0),
+                height: 80.0,
+                child: Column(
+                  children: <Widget>[
+                    Text(
+                      'Logout',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 10),
+                    ),
+                    Text(
+                      'Are you sure to logout from app?',
+                      style: TextStyle(color: Colors.white70, fontSize: 14.0),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 50,
+                child: Row(
+                  children: <Widget>[
+                    SimpleDialogOption(
+                      onPressed: () {
+                        print('pressed cancel');
+                        Navigator.pop(context, 0);
+                      },
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            child: Icon(
+                              Icons.cancel,
+                              color: Color(0xffb00bae3),
+                            ),
+                            margin: EdgeInsets.only(right: 10.0),
+                          ),
+                          Text(
+                            'CANCEL',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          )
+                        ],
+                      ),
+                    ),
+                    SimpleDialogOption(
+                      onPressed: () {
+                        print('pressed yes');
+                        FirebaseAuth.instance.signOut().then((action) {
+                          _clearSharedPref();
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/loginpage', (Route<dynamic> route) => false);
+                        });
+                      },
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            child: Icon(
+                              Icons.check_circle,
+                              color: Color(0xffb00bae3),
+                            ),
+                            margin: EdgeInsets.only(right: 10.0),
+                          ),
+                          Text(
+                            'YES',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          );
+        });
+  }
 }

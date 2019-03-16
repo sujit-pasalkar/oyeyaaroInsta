@@ -15,45 +15,46 @@ class RecordingScreen extends StatefulWidget {
 
 class _RecordingScreenState extends State<RecordingScreen>
     with SingleTickerProviderStateMixin {
-  TabController _tabController;
+  // TabController _tabController;
 
   @override
   void initState() {
     super.initState();
 
-    _tabController = TabController(vsync: this, initialIndex: 0, length: 2);
+    // _tabController = TabController(vsync: this, initialIndex: 0, length: 2);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Oye Yaaro"),
+        title: Text("Record Video"),
         actions: <Widget>[
           _menuBuilder(),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.white,
-          indicatorColor: Color(0xffb00bae3),
-          tabs: <Widget>[
-            Tab(
-              text: "Video",
-            ),
-            Tab(
-              text: "Audio",
-            ),
-          ],
-        ),
+        // bottom: TabBar(
+        //   controller: _tabController,
+        //   labelColor: Colors.white,
+        //   indicatorColor: Color(0xffb00bae3),
+        //   tabs: <Widget>[
+        //     Tab(
+        //       text: "Video",
+        //     ),
+        //     Tab(
+        //       text: "Audio",
+        //     ),
+        //   ],
+        // ),
         backgroundColor: Color(0xffb00bae3),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: <Widget>[
+      body:
+      //  TabBarView(
+      //   controller: _tabController,
+      //   children: <Widget>[
           VedioRecordingScreen(hideButtonController: widget.hideButtonController),
-          AudioRecordingScreen(hideButtonController: widget.hideButtonController),
-        ],
-      ),
+      //     AudioRecordingScreen(hideButtonController: widget.hideButtonController),
+      //   ],
+      // ),
     );
   }
 

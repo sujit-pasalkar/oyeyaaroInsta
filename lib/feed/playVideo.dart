@@ -18,7 +18,7 @@ class _PlayScreenState extends State<PlayVideo> {
   VideoPlayerController _controller;
   ChewieController _chewieController;
   VoidCallback listener;
-  double aspect;// = 1.0;
+  // double aspect;// = 1.0;
 
   bool showVideo = false;
 
@@ -42,11 +42,11 @@ class _PlayScreenState extends State<PlayVideo> {
     _controller = VideoPlayerController.file(File(url));
 
     _controller.initialize().then((onValue) {
-      aspect = aspect;//_controller.value.aspectRatio;
+      // aspect = aspect;//_controller.value.aspectRatio;
       _chewieController = ChewieController(
         videoPlayerController: _controller,
-        aspectRatio: aspect,
-        // autoPlay: true,
+        aspectRatio: _controller.value.aspectRatio,
+        autoPlay: false,
         looping: false,
       );
 
@@ -65,10 +65,10 @@ class _PlayScreenState extends State<PlayVideo> {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData queryData;
-      queryData = MediaQuery.of(context);
-      aspect = 
-      queryData.size.width/queryData.size.height;
+    // MediaQueryData queryData;
+      // queryData = MediaQuery.of(context);
+      // aspect = 
+      // queryData.size.width/queryData.size.height;
     return new MaterialApp(
      home:Scaffold(
       backgroundColor: Colors.black,

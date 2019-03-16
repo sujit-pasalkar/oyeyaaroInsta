@@ -93,7 +93,6 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                           setState(() {
                             selectedIndexes = [];
                             for (var i = 0; i < allVideos.length; i++) {
-                              // selectedIndexes[i] = allVideos[i];
                               selectedIndexes.add(allVideos[i]);
                                showShareVideoCheckBox[i] = true;
                             }
@@ -191,7 +190,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
   }
 
   Widget body(dataList) {
-    print('dataList type : ${dataList.runtimeType}');
+    print('dataList  : ${dataList}');
     if (dataList.length != 0) {
       if (dataList[0] == 'empty') {
         return Center(
@@ -260,7 +259,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                   addToSelectedIndexes(dataList[i], i);
                 }
               : () {
-                  print('removing : ${i}');
+                  print('removing : $i');
                   this.removeFromSelectedIndexes(dataList[i], i);
                 },
           onTap: this.selectedIndexes.length == 0
@@ -276,11 +275,11 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                 }
               : this.showShareVideoCheckBox[i] != true
                   ? () {
-                      print('adding : ${i}, ${dataList[i]}');
+                      print('adding : $i, ${dataList[i]}');
                       addToSelectedIndexes(dataList[i], i);
                     }
                   : () {
-                      print('removing : ${i}');
+                      print('removing : $i');
                       this.removeFromSelectedIndexes(dataList[i], i);
                     },
           child: Container(
@@ -355,7 +354,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
   deleteVideos() {
     print('in delete vid');
     for (var video in this.selectedIndexes) {
-      print('videos to delete : ${video}');
+      print('videos to delete : $video');
       File f = new File.fromUri(Uri.file(video));
       f.delete();
     }
@@ -480,7 +479,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
       var res = jsonDecode(result.body);
       print('TimeStamp got:-----${res['timestamp']}');
       var timestamp = res['timestamp'];
-      print('TimeStamp set:-----${timestamp}');
+      print('TimeStamp set:-----$timestamp');
 
       videoFile = new File(video);
 
@@ -581,6 +580,6 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
       context,
       MaterialPageRoute(builder: (context) => RecordClip()),
     );
-    print('came  back cameara...*****************************************');
+    print('back from camera page');
   }
 }
