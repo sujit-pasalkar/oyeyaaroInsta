@@ -13,7 +13,7 @@ class _CreateGroupModel {
     String userPin = prefs.getString('userPin');
 
     http.Response response = await http.post(
-        "http://54.200.143.85:4200/studentList",
+        "http://oyeyaaroapi.plmlogix.com/studentList",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"userPin": userPin}));
     var res = jsonDecode(response.body);
@@ -26,7 +26,7 @@ class _CreateGroupModel {
     String userPin = prefs.getString('userPin');
 
     http.Response response = await http.post(
-        "http://54.200.143.85:4200/createGroup",
+        "http://oyeyaaroapi.plmlogix.com/createGroup",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "group_name": g_nm,

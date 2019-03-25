@@ -229,7 +229,7 @@ class _FeedByTag extends State<FeedByTag> {
       });
     }
 
-    String url = 'http://54.200.143.85:4200/getFeedsByTag?tag=' + widget.tag;
+    String url = 'http://oyeyaaroapi.plmlogix.com/getFeedsByTag?tag=' + widget.tag;
     HttpClient httpClient = new HttpClient();
 
     try {

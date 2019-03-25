@@ -119,7 +119,7 @@ class _ImagesPageState extends State<ImagesPage> {
   }
   
   fetchImgForFilter()async{
-    http.Response response = await http.post("http://54.200.143.85:4200/getImages",
+    http.Response response = await http.post("http://oyeyaaroapi.plmlogix.com/getImages",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"dialog_id": '${widget.dialogId}'}));
         res = jsonDecode(response.body);
@@ -130,7 +130,7 @@ class _ImagesPageState extends State<ImagesPage> {
   }
 
   Future<List<ImagesData>> fetchImages(http.Client client,dialogId) async {
-    final result = await client.post("http://54.200.143.85:4200/getImages",
+    final result = await client.post("http://oyeyaaroapi.plmlogix.com/getImages",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"dialog_id": '$dialogId'}));
 
@@ -215,7 +215,7 @@ class _ImagesPageState extends State<ImagesPage> {
               ),
               border: Border.all(color: Colors.black),
               borderRadius: BorderRadius.circular(10.0),
-            ),
+              ),
             margin: EdgeInsets.only(bottom: 8.0),
             child: Stack(
               children: <Widget>[

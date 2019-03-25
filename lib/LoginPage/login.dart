@@ -143,15 +143,17 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: () {
                   setState(() {
                     this.loading = true;
-                    // this.loadingMsg = ""
+                    this.loadingMsg = "";
                   });
+                  Navigator.of(context).pop(0);
+                  // Navigator.pop(context, 0);
                   print(this.smsCode.length);
                   if (this.smsCode.length == 6) {
                     FirebaseAuth.instance.currentUser().then((user) {
-                      print('user ${user}');
+                      print('user $user');
                       if (user != null) {
                         register();
-                        print('user:${user}');
+                        print('user:$user');
                         print("phone" + this.phoneNo);
                       } else {
                         // final snackBar = SnackBar(
@@ -181,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> register() async {
     print('after setting phone..register');
-    Navigator.pop(context);
+    // Navigator.pop(context);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -222,7 +224,7 @@ class _LoginPageState extends State<LoginPage> {
         content: Text("The sms verification code is invalid."),
       );
       _scaffoldKey.currentState.showSnackBar(snackBar);
-      Navigator.of(context).pop();
+      // Navigator.of(context).pop();
     });
   }
 

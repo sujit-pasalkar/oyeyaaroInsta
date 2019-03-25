@@ -127,7 +127,7 @@ class _UserPinPageState extends State<UserPinPage> {
       formKey.currentState.save();
       try {
         http.Response response = await http.post(
-            "http://54.200.143.85:4200/getProfile",
+            "http://oyeyaaroapi.plmlogix.com/getProfile",
             headers: {"Content-Type": "application/json"},
             body: jsonEncode({"pin": '${userPin}'}));
         if (response.statusCode == HttpStatus.OK) {
@@ -136,7 +136,7 @@ class _UserPinPageState extends State<UserPinPage> {
           if (result['success'] == true) {
             //#invite
             http.Response respo = await http.post(
-                "http://54.200.143.85:4200/setMember", // true invite
+                "http://oyeyaaroapi.plmlogix.com/setMember", // true invite
                 headers: {"Content-Type": "application/json"},
                 body: jsonEncode({"pin": '${userPin}'}));
             print(respo.body);
@@ -161,7 +161,7 @@ class _UserPinPageState extends State<UserPinPage> {
             ref.document(this.userPin).setData({
               "userId": userPin,
               "username": result['data'][0]['Name'],
-              "photoUrl": "http://54.200.143.85:4200/profiles/now/" +
+              "photoUrl": "http://oyeyaaroapi.plmlogix.com/profiles/now/" +
                   this.userPin +
                   ".jpg",
               "email": result['data'][0]['Email'],
@@ -174,7 +174,7 @@ class _UserPinPageState extends State<UserPinPage> {
 
             //#setUser verified phone
             http.Response setphn =
-                await http.post("http://54.200.143.85:4200/setNumber",
+                await http.post("http://oyeyaaroapi.plmlogix.com/setNumber",
                     headers: {"Content-Type": "application/json"},
                     body: jsonEncode(
                       {"pin": '${userPin}', 'mobile': '${widget.phone}'},

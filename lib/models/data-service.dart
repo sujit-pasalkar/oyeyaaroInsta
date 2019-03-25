@@ -41,7 +41,7 @@ class _DataService {
     try {
       print('in _getAllTags()');
       http.Response response = await http.get(
-        "http://54.200.143.85:4200/getTags",
+        "http://oyeyaaroapi.plmlogix.com/getTags",
         headers: headers,
       );
       if (response.statusCode == 200) {
@@ -62,7 +62,7 @@ class _DataService {
 
     int length = await file.length();
 
-    Uri uri = Uri.parse("http://54.200.143.85:4200/postFeedMedia");
+    Uri uri = Uri.parse("http://oyeyaaroapi.plmlogix.com/postFeedMedia");
 
     http.MultipartRequest request = new http.MultipartRequest("POST", uri);
     request.headers["filename"] = "post_$uuid$extension";
@@ -77,7 +77,7 @@ class _DataService {
       print("uploaded");
     });
 
-    return "http://54.200.143.85:4200/feeds/post_$uuid$extension";
+    return "http://oyeyaaroapi.plmlogix.com/feeds/post_$uuid$extension";
   }
 
   Future<String> uploadFileToS3(File file, String uuid, String extension) async {
@@ -97,7 +97,6 @@ class _DataService {
   }
 
   Future<File> downloadFileFromS3(String filename) async {
-    filename = filename.split("/").last;
 
     MethodChannel _channel = MethodChannel('plmlogix.recordvideo/info');
     Map<String, dynamic> params = <String, dynamic>{

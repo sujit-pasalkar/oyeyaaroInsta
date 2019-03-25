@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import './LoginPage/login.dart';
 import 'package:connect_yaar/ProfilePage/profile.dart';
-// import 'HomePage/pages/New_Group/searchGroup.dart';
 import 'PrivacyPage/privacyPolicy.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'models/url.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity/connectivity.dart';
@@ -42,7 +42,6 @@ class MyApp extends StatelessWidget {
           '/homepage': (BuildContext context) => HomePage(),
           '/mainpage': (BuildContext context) => MainPage(),
           '/privacypolicy': (BuildContext context) => PrivacyPolicyPage(),
-          // '/searchPage': (BuildContext context) => SearchGroupList(),
         });
   }
 }
@@ -157,7 +156,7 @@ class _MainPageState extends State<MainPage>
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       this.userPhone = (prefs.getString('userPhone') ?? null);
-      this.userPin = (prefs.getString('userPin') ?? null); 
+      this.userPin = (prefs.getString('userPin') ?? null);
 
       print('in userPhone: $userPhone');
       print('in userPin: $userPin');
@@ -177,41 +176,43 @@ class _MainPageState extends State<MainPage>
           ),
         );
       } else if (this.userPin != null) {
-        http.Response response = await http.post(
-            "http://54.200.143.85:4200/getProfile",
-            headers: {"Content-Type": "application/json"},
-            body: jsonEncode({"pin": '${this.userPin}'}));
+        try {
+          http.Response response = await http.post(
+              "http://oyeyaaroapi.plmlogix.com/getProfile",
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode({"pin": '${this.userPin}'}));
 
-        if (response.statusCode == HttpStatus.OK) {
-          var result = jsonDecode(response.body);
+          if (response.statusCode == HttpStatus.OK) {
+            var result = jsonDecode(response.body);
 
-          if (result['success'] == true) {
-            http.Response respo = await http.post(
-                "http://54.200.143.85:4200/setMember", //to set user
-                headers: {"Content-Type": "application/json"},
-                body: jsonEncode({"pin": "${userPin}"}));
-            // print(respo.body);
-            print('res success..${result['data'][0]['Mobile']}');
-            // currentUser.toString();
-            await dataService.initialize();
-            // # reg to sinch
-            registerUserSinch(this.userPhone).then((onValue) {
-              print('reg succes to sinch');
-            });
+            if (result['success'] == true) {
+              http.Response respo = await http.post(
+                  "http://oyeyaaroapi.plmlogix.com/setMember", //to set user
+                  headers: {"Content-Type": "application/json"},
+                  body: jsonEncode({"pin": "${userPin}"}));
+              // print(respo.body);
+              print('res success..${result['data'][0]['Mobile']}');
+              // currentUser.toString();
+              await dataService.initialize();
+              // # reg to sinch
+              registerUserSinch(this.userPhone).then((onValue) {
+                print('reg succes to sinch');
+              });
 
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(),
-              ),
-            );
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomePage(),
+                ),
+              );
+            } else {
+              Fluttertoast.showToast(msg: 'result : ${result['success']}');
+            }
           } else {
-            Fluttertoast.showToast(msg: 'getProfile service Response failed');
-            // print('res false..incorrecr  pin...give toast');
+            Fluttertoast.showToast(msg: 'statusCode: ${response.statusCode}');
           }
-        } else {
-          // print('response.statusCode...service res failed');
-          Fluttertoast.showToast(msg: 'getProfile service Response failed');
+        } catch (e) {
+          Fluttertoast.showToast(msg: 'Error: $e');
         }
       }
     } else {

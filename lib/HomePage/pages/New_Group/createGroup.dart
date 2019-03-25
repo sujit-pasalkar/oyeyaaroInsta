@@ -25,8 +25,8 @@ class CreateGroupState extends State<CreateGroup> {
 
   //service res
   String val = '';
-  List<dynamic> year; // = [];
-  List<dynamic> branch; // = [];
+  List<dynamic> year;
+  List<dynamic> branch;
 
 // search related vars
   final globalKey = new GlobalKey<ScaffoldState>();
@@ -67,11 +67,11 @@ class CreateGroupState extends State<CreateGroup> {
     String userPin = prefs.getString('userPin');
 
     http.Response response = await http.post(
-        "http://54.200.143.85:4200/studentList",
+        "http://oyeyaaroapi.plmlogix.com/studentList",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"college": '${this.val}', "userPin": userPin}));
     var res = jsonDecode(response.body);
-    this.collegeStudentList = res['data'];
+    this.collegeStudentList = res['data']; //.sort;
     print('student list res:$collegeStudentList');
     setState(() {
       showLoading = false;
@@ -80,7 +80,7 @@ class CreateGroupState extends State<CreateGroup> {
 
   void values() async {
     collegelist = List();
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     String collegeName = prefs.getString('collegeName');
     //call getCollegeList Service
     collegelist.addAll([
@@ -119,7 +119,7 @@ class CreateGroupState extends State<CreateGroup> {
       });
 
       http
-          .post("http://54.200.143.85:4200/checkGroup",
+          .post("http://oyeyaaroapi.plmlogix.com/checkGroup",
               headers: {"Content-Type": "application/json"}, body: body3)
           .then((response) {
         var res = jsonDecode(response.body);
@@ -281,32 +281,36 @@ class CreateGroupState extends State<CreateGroup> {
                                                   color: Colors.grey[300],
                                                 ),
                                                 child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          40.0),
-                                                  child: CachedNetworkImage(
-                                                    imageUrl:
-                                                        "http://54.200.143.85:4200/getAvatarImageNow/${searchresult[index]['PinCode']}",
-                                                    fit: BoxFit.cover,
-                                                    placeholder: Padding(
-                                                      padding:
-                                                          EdgeInsets.all(15),
-                                                      child: SizedBox(
-                                                        child: CircularProgressIndicator(
-                                                            valueColor:
-                                                                new AlwaysStoppedAnimation<
-                                                                        Color>(
-                                                                    Color(
-                                                                        0xffb00bae3)),
-                                                            strokeWidth: 1.0),
-                                                      ),
-                                                    ),
-                                                    errorWidget: new Icon(
-                                                      Icons.error,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                )),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            40.0),
+                                                    child: Image.network(
+                                                      "http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${searchresult[index]['PinCode']}",
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                    // CachedNetworkImage(
+                                                    //   imageUrl:
+                                                    //       "http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${searchresult[index]['PinCode']}",
+                                                    //   fit: BoxFit.cover,
+                                                    //   placeholder: Padding(
+                                                    //     padding:
+                                                    //         EdgeInsets.all(15),
+                                                    //     child: SizedBox(
+                                                    //       child: CircularProgressIndicator(
+                                                    //           valueColor:
+                                                    //               new AlwaysStoppedAnimation<
+                                                    //                       Color>(
+                                                    //                   Color(
+                                                    //                       0xffb00bae3)),
+                                                    //           strokeWidth: 1.0),
+                                                    //     ),
+                                                    //   ),
+                                                    //   errorWidget: new Icon(
+                                                    //     Icons.error,
+                                                    //     color: Colors.black,
+                                                    //   ),
+                                                    // ),
+                                                    )),
                                           ),
                                         ),
                                         onTap: () {
@@ -520,7 +524,7 @@ class CreateGroupState extends State<CreateGroup> {
       "receiverNumber": Mobile
     });
     http
-        .post("http://54.200.143.85:4200/startChat",
+        .post("http://oyeyaaroapi.plmlogix.com/startChat",
             headers: {"Content-Type": "application/json"}, body: bodyPMsg)
         .then((response) {
       var res = jsonDecode(response.body);
@@ -577,8 +581,10 @@ class CreateGroupState extends State<CreateGroup> {
         }
       }
     }
+    // a.compareTo(b)
     searchresult.addAll(inviteUsersList);
-    print('added..');
+    searchresult.sort((a, b) => (a['Name']).compareTo(b['Name']));
+    print('searchresult:$searchresult');
   }
 
   tapOnCollege(value) async {
@@ -595,7 +601,7 @@ class CreateGroupState extends State<CreateGroup> {
       "College": "$value",
     });
     http
-        .post("http://54.200.143.85:4200/yearAndBatch",
+        .post("http://oyeyaaroapi.plmlogix.com/yearAndBatch",
             headers: {"Content-Type": "application/json"}, body: body)
         .then((response) {
       var res = jsonDecode(response.body);

@@ -13,10 +13,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:video_player/video_player.dart';
 import 'package:thumbnails/thumbnails.dart';
-
 import 'package:flutter/services.dart';
-import '../playVideo.dart';
-
+// import '../playVideo.dart';
+import '../../../feed/playVideo.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../feed/image_view.dart';
 import '../../../ProfilePage/profile.dart';
@@ -101,6 +100,9 @@ class ChatPrivateState extends State<ChatPrivate> {
   List searchresult = new List();
 
   List songSearchresult2 = new List();
+
+  bool textSending = false;
+
 
   List<dynamic> _songList1;
   List<dynamic> _songList2;
@@ -257,34 +259,94 @@ class ChatPrivateState extends State<ChatPrivate> {
     }
   }
 
+  // Future getCameraVideo() async {
+  //   try {
+  //     setState(() {
+  //       isLoading = true;
+  //     });
+  //     File originalVideoUrl =
+  //         await ImagePicker.pickVideo(source: ImageSource.camera);
+  //     print('Original Video: ${originalVideoUrl.path}');
+  //     int fileSize = await originalVideoUrl.length();
+  //     print(
+  //         "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
+  //     CommonFunctions cmf = new CommonFunctions();
+  //     cmf.compressVideo(originalVideoUrl.path).then((value) async {
+  //       imageFile = new File(value);
+  //       int fileSize = await imageFile.length();
+  //       print("Compressed vedio file size: " +
+  //           (fileSize / 1024).toString() +
+  //           " KB");
+  //       if (imageFile != null) {
+  //          http.Response responseTime =
+  //             await http.get('http://oyeyaaroapi.plmlogix.com/time');
+  //         timestamp = jsonDecode(responseTime.body)['timestamp'];
+  //         print('Got timestamp : $timestamp');
+  //         uploadVideoFile(timestamp);
+  //       }
+  //     }).catchError((error) {
+  //       print('Error Compressing: $error');
+  //     });
+  //   } catch (e) {
+  //     print('error while opening: $e');
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
   Future getCameraVideo() async {
     try {
       setState(() {
         isLoading = true;
       });
-      File originalVideoUrl =
-          await ImagePicker.pickVideo(source: ImageSource.camera);
-      print('Original Video: ${originalVideoUrl.path}');
-      int fileSize = await originalVideoUrl.length();
-      print(
-          "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
-      CommonFunctions cmf = new CommonFunctions();
-      cmf.compressVideo(originalVideoUrl.path).then((value) async {
-        imageFile = new File(value);
-        int fileSize = await imageFile.length();
-        print("Compressed vedio file size: " +
+      print('in get camera video');
+
+      var originalVideoUrl =
+          await ImagePicker.pickVideo(source: ImageSource.camera)
+              .then((onValue) {
+        return onValue;
+      }).catchError((onError) {
+        return null;
+      });
+      if (originalVideoUrl != null) {
+        print('originalVideoUrl :  $originalVideoUrl');
+        var fileSize = await originalVideoUrl.length();
+        print("Original vedio file size: " +
             (fileSize / 1024).toString() +
             " KB");
-        if (imageFile != null) {
-           http.Response responseTime =
-              await http.get('http://54.200.143.85:4200/time');
-          timestamp = jsonDecode(responseTime.body)['timestamp'];
-          print('Got timestamp : $timestamp');
-          uploadVideoFile(timestamp);
+        if ((fileSize / 1024) <= 10000) {
+          CommonFunctions cmf = new CommonFunctions();
+          cmf.compressVideo(originalVideoUrl.path).then((value) async {
+            File imageFile = new File(value);
+            fileSize = await imageFile.length();
+            print("Compressed vedio file size: " +
+                (fileSize / 1024).toString() +
+                " KB");
+
+            http.Response responseTime =
+                await http.get('http://oyeyaaroapi.plmlogix.com/time');
+            timestamp = jsonDecode(responseTime.body)['timestamp'];
+            print('Got timestamp : $timestamp');
+            uploadVideoFile(imageFile, timestamp);
+          }).catchError((error) {
+            print('Error Compressing: $error');
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(msg: 'Unable to upload this file');
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          Fluttertoast.showToast(msg: 'Oops video size is greater than 10MB!');
         }
-      }).catchError((error) {
-        print('Error Compressing: $error');
-      });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        Fluttertoast.showToast(msg: 'video not selected.');
+      }
     } catch (e) {
       print('error while opening: $e');
       setState(() {
@@ -293,37 +355,113 @@ class ChatPrivateState extends State<ChatPrivate> {
     }
   }
 
+  // Future getGalleryVideo() async {
+  //   try {
+  //     setState(() {
+  //       isLoading = true;
+  //     });
+  //     File originalVideoUrl =
+  //         await ImagePicker.pickVideo(source: ImageSource.gallery);
+  //     print('Original Video: $originalVideoUrl.path');
+  //     int fileSize = await originalVideoUrl.length();
+  //     print(
+  //         "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
+  //     CommonFunctions cmf = new CommonFunctions();
+  //     cmf.compressVideo(originalVideoUrl.path).then((value) async {
+  //       imageFile = new File(value);
+  //       int fileSize = await imageFile.length();
+  //       print("Compressed vedio file size: " +
+  //           (fileSize / 1024).toString() +
+  //           " KB");
+  //           if((fileSize/1024) >10000)
+  //             print('file size greater than 10mb');
+  //           else print('file size less than 10mb');
+  //       // print('${originalVideoUrl.}');
+  //       if (imageFile != null) {
+  //         http.Response responseTime =
+  //             await http.get('http://oyeyaaroapi.plmlogix.com/time');
+  //         timestamp = jsonDecode(responseTime.body)['timestamp'];
+  //         print('Got timestamp : $timestamp');
+
+  //         uploadVideoFile(timestamp);
+  //       }
+  //     }).catchError((error) {
+  //       print('Error Compressing: $error');
+  //       setState(() {
+  //       isLoading = false;
+  //     });
+  //     Fluttertoast.showToast(msg: 'Unable to upload this file');
+  //     });
+  //   } catch (e) {
+  //     print('error while opening: $e');
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
+
   Future getGalleryVideo() async {
+    print('in get Gallery video');
     try {
       setState(() {
         isLoading = true;
       });
-      File originalVideoUrl =
-          await ImagePicker.pickVideo(source: ImageSource.gallery);
-      print('Original Video: $originalVideoUrl.path');
-      int fileSize = await originalVideoUrl.length();
-      print(
-          "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
-      CommonFunctions cmf = new CommonFunctions();
-      cmf.compressVideo(originalVideoUrl.path).then((value) async {
-        imageFile = new File(value);
-        int fileSize = await imageFile.length();
-        print("Compressed vedio file size: " +
+
+      var originalVideoUrl =
+          await ImagePicker.pickVideo(source: ImageSource.gallery)
+              .then((onValue) {
+        return onValue;
+      }).catchError((onError) {
+        return null;
+      });
+      if (originalVideoUrl != null) {
+        print('originalVideoUrl :  $originalVideoUrl');
+        var fileSize = await originalVideoUrl.length();
+        print("Original vedio file size: " +
             (fileSize / 1024).toString() +
             " KB");
-        // print('${originalVideoUrl.}');
-        if (imageFile != null) {
-          http.Response responseTime =
-              await http.get('http://54.200.143.85:4200/time');
-          timestamp = jsonDecode(responseTime.body)['timestamp'];
-          print('Got timestamp : $timestamp');
 
-          uploadVideoFile(timestamp);
+        if ((fileSize / 1024) <= 10000) {
+          CommonFunctions cmf = new CommonFunctions();
+          cmf.compressVideo(originalVideoUrl.path).then((value) async {
+            File imageFile = new File(value);
+            fileSize = await imageFile.length();
+            print("Compressed vedio file size: " +
+                (fileSize / 1024).toString() +
+                " KB");
+
+            if ((fileSize / 1024) <= 10000) {
+              http.Response responseTime =
+                  await http.get('http://oyeyaaroapi.plmlogix.com/time');
+              timestamp = jsonDecode(responseTime.body)['timestamp'];
+              print('Got timestamp : $timestamp');
+              uploadVideoFile(imageFile, timestamp);
+            } else {
+              setState(() {
+                isLoading = false;
+              });
+              Fluttertoast.showToast(msg: 'Video size too large!');
+            }
+          }).catchError((error) {
+            print('Error Compressing: $error');
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(msg: 'Unable to upload this file');
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          Fluttertoast.showToast(msg: 'Oops video size is greater than 10MB!');
         }
-      }).catchError((error) {
-        print('Error Compressing: $error');
-      });
-    } catch (e) {
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        Fluttertoast.showToast(msg: 'video not selected.');
+      }
+      } catch (e) {
       print('error while opening: $e');
       setState(() {
         isLoading = false;
@@ -331,32 +469,7 @@ class ChatPrivateState extends State<ChatPrivate> {
     }
   }
 
-  // Future<String> _compressVideo(String originalVideoUrl) async {
-  //   String compressedVideoUrl;
-  //   MethodChannel platform = const MethodChannel("plmlogix.recordvideo/info");
-
-  //   print('in _compressVideo : timestamp : $timestamp');
-  //   http.Response responseTime =
-  //       await http.get('http://54.200.143.85:4200/time');
-  //   timestamp = jsonDecode(responseTime.body)['timestamp'];
-  //   print('Got timestamp : $timestamp');
-
-  //   Map<String, dynamic> data = <String, dynamic>{
-  //     'originalVideoUrl': originalVideoUrl,
-  //     'timestamp': timestamp,
-  //   };
-
-  //   try {
-  //     compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
-  //     print(
-  //         'got compressedVideoUrl from platform method:  $compressedVideoUrl');
-  //   } catch (e) {
-  //     print('error while compressing:$e');
-  //   }
-  //   return compressedVideoUrl;
-  // }
-
-  Future uploadVideoFile(timestamp) async {
+  Future uploadVideoFile(imageFile,timestamp) async {
     try {
       print('VideoFILE ******: $imageFile , timestamp : $timestamp');
       setState(() {
@@ -383,7 +496,7 @@ class ChatPrivateState extends State<ChatPrivate> {
 
       //call service
       http.Response response = await http.post(
-          "http://54.200.143.85:4200/uploadImages",
+          "http://oyeyaaroapi.plmlogix.com/uploadImages",
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({
             "url": mediaUrl,
@@ -417,7 +530,7 @@ class ChatPrivateState extends State<ChatPrivate> {
         this.isLoading = true;
       });
       http.Response responseTime =
-          await http.get('http://54.200.143.85:4200/time');
+          await http.get('http://oyeyaaroapi.plmlogix.com/time');
       timestamp = jsonDecode(responseTime.body)['timestamp'];
 
       String mediaUrl = await dataService.uploadFileToS3(
@@ -426,7 +539,7 @@ class ChatPrivateState extends State<ChatPrivate> {
 
       //call service
       http.Response response = await http.post(
-          "http://54.200.143.85:4200/uploadImages",
+          "http://oyeyaaroapi.plmlogix.com/uploadImages",
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({
             "url": mediaUrl,
@@ -439,7 +552,7 @@ class ChatPrivateState extends State<ChatPrivate> {
 
       setState(() {
         onSendMessage(
-            mediaUrl, //"http://54.200.143.85:4200/Media/Images/${chatId}/${timestamp}.jpeg",
+            mediaUrl, //"http://oyeyaaroapi.plmlogix.com/Media/Images/${chatId}/${timestamp}.jpeg",
             1,
             timestamp);
       });
@@ -452,7 +565,11 @@ class ChatPrivateState extends State<ChatPrivate> {
   }
 
   void onTextMessage(String content, int type) async {
-    var result = await http.get('http://54.200.143.85:4200/time');
+    setState(() {
+      textSending = true;
+    });
+
+    var result = await http.get('http://oyeyaaroapi.plmlogix.com/time');
     var res = jsonDecode(result.body);
     print('..............${res['timestamp'].runtimeType}');
     timestamp = res['timestamp'];
@@ -481,11 +598,19 @@ class ChatPrivateState extends State<ChatPrivate> {
             'senderName': this.myName
           },
         );
+      }).then((onValue) {
+        print('$content sent');
+        setState(() {
+          textSending = false;
+        });
       });
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       Fluttertoast.showToast(msg: 'Nothing to send');
+      setState(() {
+        textSending = false;
+      });
     }
   }
 
@@ -518,7 +643,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                 'type': type,
                 'senderName': this.myName,
                 'thumbnail': thumbUrl,
-                //  "http://54.200.143.85:4200/Media/Frames/" +this.chatId +"/" +time +"_1.jpg"
+                //  "http://oyeyaaroapi.plmlogix.com/Media/Frames/" +this.chatId +"/" +time +"_1.jpg"
               },
             );
           }).then((onValue) {
@@ -607,7 +732,6 @@ class ChatPrivateState extends State<ChatPrivate> {
   Widget buildItem(int index, DocumentSnapshot document) {
     if (document['senderId'] == this.myId) {
       // Right (my message)
-      // final dismissKey = document['timestamp'];
       return Stack(
         children: <Widget>[
           Row(
@@ -675,6 +799,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                 index, document['timestamp'], document['type']);
                           },
                           onTap: () {
+                             audioPlayer.stop();
                             print(document['msg']);
                             Navigator.push(
                               context,
@@ -772,11 +897,12 @@ class ChatPrivateState extends State<ChatPrivate> {
                               },
                               onTap: () {
                                 print('opening video');
+                                 audioPlayer.stop();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => PlayScreen(
-                                        url: document['msg'], type: 'network'),
+                                    builder: (context) => PlayVideo(
+                                        mediaUrl: document['msg']),
                                   ),
                                 );
                               },
@@ -879,7 +1005,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                         : play(
                                             document['msg'].toString(),
                                             document['msg'].toString().replaceAll(
-                                                'http://54.200.143.85:4200/AudioChat/',
+                                                'http://oyeyaaroapi.plmlogix.com/AudioChat/',
                                                 ''));
                                   },
                                   child: Container(
@@ -916,7 +1042,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                           child: playPauseIcon(document['msg']
                                                   .toString()
                                                   .replaceAll(
-                                                      'http://54.200.143.85:4200/AudioChat/',
+                                                      'http://oyeyaaroapi.plmlogix.com/AudioChat/',
                                                       '')) //isPlaying
                                               ? Container(
                                                   margin: EdgeInsets.all(3),
@@ -970,7 +1096,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                           //           document['msg']
                                           //               .toString()
                                           //               .replaceAll(
-                                          //                   'http://54.200.143.85:4200/AudioChat/',
+                                          //                   'http://oyeyaaroapi.plmlogix.com/AudioChat/',
                                           //                   ''));
                                           // },
                                           // ),
@@ -1007,7 +1133,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                         : play(
                                             document['msg'].toString(),
                                             document['msg'].toString().replaceAll(
-                                                'http://54.200.143.85:4200/Audio/',
+                                                'http://oyeyaaroapi.plmlogix.com/Audio/',
                                                 ''));
                                   },
                                   child: Container(
@@ -1044,7 +1170,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                           child: playPauseIcon(document['msg']
                                                   .toString()
                                                   .replaceAll(
-                                                      'http://54.200.143.85:4200/Audio/',
+                                                      'http://oyeyaaroapi.plmlogix.com/Audio/',
                                                       ''))
                                               ? Container(
                                                   margin: EdgeInsets.all(3),
@@ -1104,7 +1230,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                           //           document['msg']
                                           //               .toString()
                                           //               .replaceAll(
-                                          //                   'http://54.200.143.85:4200/Audio/',
+                                          //                   'http://oyeyaaroapi.plmlogix.com/Audio/',
                                           //                   ''));
                                           // },
                                           // ),
@@ -1177,7 +1303,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                 //             padding: EdgeInsets.all(10.0),
                 //           ),
                 //           imageUrl:
-                //               'http://54.200.143.85:4200/Media/Images/da2dd2kgjpm85w9n/1548247221.jpeg',
+                //               'http://oyeyaaroapi.plmlogix.com/Media/Images/da2dd2kgjpm85w9n/1548247221.jpeg',
                 //           width: 40.0,
                 //           height: 40.0,
                 //           fit: BoxFit.cover,
@@ -1247,35 +1373,27 @@ class ChatPrivateState extends State<ChatPrivate> {
                           // left: 10.0
                         ),
                       )
-                    // Column(
-                    //     crossAxisAlignment: CrossAxisAlignment.start,
-                    //     children: <Widget>[
-                    //       Text(
-                    //         DateFormat('dd MMM kk:mm').format(
-                    //             DateTime.fromMillisecondsSinceEpoch(
-                    //                 int.parse(document['timestamp']))),
-                    //         style: TextStyle(
-                    //             color: greyColor,
-                    //             fontSize: 12.0,
-                    //             fontStyle: FontStyle.italic),
-                    //       ),
-                    //       Container(
-                    //         child: Text(
-                    //           document['msg'],
-                    //           style: TextStyle(color: primaryColor),
-                    //         ),
-                    //         padding:
-                    //             EdgeInsets.fromLTRB(10.0, 10.0, 15.0, 10.0),
-                    //         width: 200.0,
-                    //         decoration: BoxDecoration(
-                    //             color: Colors.indigo[100],
-                    //             borderRadius: BorderRadius.circular(8.0)),
-                    //       )
-                    //     ],
-                    //   )
                     : document['type'] == 1
                         //img
-                        ? Container(
+                        ? GestureDetector(
+                          onLongPress: () {
+                            adddeleteMsgIdx(
+                                index, document['timestamp'], document['type']);
+                          },
+                          onTap: () {
+                             audioPlayer.stop();
+                            print(document['msg']);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => 
+                                    ImageViewer(
+                                      imageUrl: document['msg'],
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Container(
                             child: new Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -1283,6 +1401,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                   children: <Widget>[
                                     Expanded(
                                       child: Text(document['senderName'],
+                                          overflow: TextOverflow.ellipsis,
                                           style: new TextStyle(
                                               fontSize: 12.0,
                                               color: Colors.black,
@@ -1304,53 +1423,35 @@ class ChatPrivateState extends State<ChatPrivate> {
                                     padding:
                                         EdgeInsets.symmetric(vertical: 5.0)),
                                 Material(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      print(document['msg']);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => //ShowImage
-                                              ImageViewer(
-                                                imageUrl: document['msg'],
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                    child: CachedNetworkImage(
-                                      placeholder: Container(
-                                        child: CircularProgressIndicator(
-                                            // valueColor:
-                                            //     AlwaysStoppedAnimation<Color>(
-                                            //         themeColor),
-                                            ),
-                                        width: 200.0,
-                                        height: 200.0,
-                                        padding: EdgeInsets.all(70.0),
-                                        decoration: BoxDecoration(
-                                          color: Colors.indigo[100],
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(8.0),
-                                          ),
-                                        ),
-                                      ),
-                                      errorWidget: Material(
-                                        child: Image.asset(
-                                          'images/no_img.png',
-                                          width: 200.0,
-                                          height: 200.0,
-                                          fit: BoxFit.cover,
-                                        ),
+                                  child: CachedNetworkImage(
+                                    placeholder: Container(
+                                      child: CircularProgressIndicator(valueColor:
+                                              new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xffb00bae3))),
+                                      padding: EdgeInsets.all(70.0),
+                                      decoration: BoxDecoration(
+                                        color: greyColor2,
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(8.0),
                                         ),
-                                        clipBehavior: Clip.hardEdge,
                                       ),
-                                      imageUrl: document['msg'],
-                                      width: 200.0,
-                                      height: 200.0,
-                                      fit: BoxFit.cover,
                                     ),
+                                    errorWidget: Material(
+                                      child: Image.asset(
+                                        'images/no_img.png',
+                                        width: 200.0,
+                                        height: 200.0,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(8.0),
+                                      ),
+                                      clipBehavior: Clip.hardEdge,
+                                    ),
+                                    imageUrl: document['msg'],
+                                    width: 200.0,
+                                    height: 200.0,
+                                    fit: BoxFit.cover,
                                   ),
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(8.0)),
@@ -1360,14 +1461,14 @@ class ChatPrivateState extends State<ChatPrivate> {
                             ),
                             padding: EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
                             width: 200.0,
-                            decoration: BoxDecoration(
-                                color: Colors.indigo[100],
-                                borderRadius: BorderRadius.circular(8.0)),
                             margin: EdgeInsets.only(
-                              bottom: isLastMessageRight(index) ? 10.0 : 20.0,
-                              // left: 10.0
+                              bottom: isLastMessageRight(index) ? 20.0 : 10.0,
                             ),
-                          )
+                            decoration: BoxDecoration(
+                                color: greyColor2,
+                                borderRadius: BorderRadius.circular(8.0)),
+                          ),
+                        )
 
                         // video
                         : document['type'] == 2
@@ -1423,14 +1524,14 @@ class ChatPrivateState extends State<ChatPrivate> {
                                             color: Colors.white,
                                           ),
                                           onTap: () {
+                                             audioPlayer.stop();
                                             print('opening video');
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    PlayScreen(
-                                                        url: document['msg'],
-                                                        type: 'network'),
+                                                    PlayVideo(
+                                                        mediaUrl: document['msg'],),
                                               ),
                                             );
                                           },
@@ -1570,7 +1671,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                             child: playPauseIcon(document['msg']
                                                     .toString()
                                                     .replaceAll(
-                                                        'http://54.200.143.85:4200/AudioChat/',
+                                                        'http://oyeyaaroapi.plmlogix.com/AudioChat/',
                                                         ''))
                                                 ? Container(
                                                     margin: EdgeInsets.all(3),
@@ -1625,7 +1726,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                                       document['msg']
                                                           .toString()
                                                           .replaceAll(
-                                                              'http://54.200.143.85:4200/AudioChat/',
+                                                              'http://oyeyaaroapi.plmlogix.com/AudioChat/',
                                                               ''));
                                             },
                                           ),
@@ -1687,7 +1788,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                               playPauseIcon(document['msg']
                                                       .toString()
                                                       .replaceAll(
-                                                          'http://54.200.143.85:4200/Audio/',
+                                                          'http://oyeyaaroapi.plmlogix.com/Audio/',
                                                           '')) //isPlaying
                                                   ? Container(
                                                       margin: EdgeInsets.all(3),
@@ -1752,7 +1853,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                                                     document['msg']
                                                         .toString()
                                                         .replaceAll(
-                                                            'http://54.200.143.85:4200/Audio/',
+                                                            'http://oyeyaaroapi.plmlogix.com/Audio/',
                                                             ''));
                                           },
                                         ),
@@ -1845,6 +1946,7 @@ class ChatPrivateState extends State<ChatPrivate> {
           ? new AppBar(
               title: FlatButton(
                 onPressed: () {
+                   audioPlayer.stop();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1869,6 +1971,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                 IconButton(
                   icon: Icon(Icons.home),
                   onPressed: () {
+                     audioPlayer.stop();
                     Navigator.of(context).pushNamedAndRemoveUntil(
                         '/homepage', (Route<dynamic> route) => false);
                   },
@@ -1985,7 +2088,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                   isPlaying
                       ? stop()
                       : play(
-                          "http://54.200.143.85:4200/AudioChat/" +
+                          "http://oyeyaaroapi.plmlogix.com/AudioChat/" +
                               listData.toString(),
                           listData);
                 },
@@ -1997,7 +2100,7 @@ class ChatPrivateState extends State<ChatPrivate> {
                   _scaffoldKey.currentState.showSnackBar(snackBar);
                   print("onLongPress");
                   onTextMessage(
-                      "http://54.200.143.85:4200/AudioChat/" +
+                      "http://oyeyaaroapi.plmlogix.com/AudioChat/" +
                           listData.toString(),
                       3);
                 },
@@ -2052,14 +2155,14 @@ class ChatPrivateState extends State<ChatPrivate> {
                 isPlaying
                     ? stop()
                     : play(
-                        "http://54.200.143.85:4200/Audio/" +
+                        "http://oyeyaaroapi.plmlogix.com/Audio/" +
                             listData.toString(),
                         listData);
               },
               onLongPress: () {
                 print("onLongPress");
                 onTextMessage(
-                    "http://54.200.143.85:4200/Audio/" + listData.toString(),
+                    "http://oyeyaaroapi.plmlogix.com/Audio/" + listData.toString(),
                     4);
               },
             );
@@ -2205,10 +2308,11 @@ class ChatPrivateState extends State<ChatPrivate> {
                     ),
                   ],
                 )
-              : SizedBox(
-                  height: 0,
-                  width: 0,
-                ),
+              : Text(''),
+              // SizedBox(
+              //     height: 0,
+              //     width: 0,
+              //   ),
           Row(
             children: <Widget>[
               Padding(
@@ -2258,7 +2362,11 @@ class ChatPrivateState extends State<ChatPrivate> {
                 margin: new EdgeInsets.symmetric(horizontal: 8.0),
                 child: new IconButton(
                   icon: new Icon(Icons.send),
-                  onPressed: () => onTextMessage(textEditingController.text, 0),
+                  onPressed: !textSending
+                      ? () {
+                          onTextMessage(textEditingController.text, 0);
+                        }
+                      : null, 
                   color: Colors.white,
                 ),
               ),
@@ -2311,7 +2419,7 @@ class ChatPrivateState extends State<ChatPrivate> {
     _songList1 = List();
     _songList2 = List();
     http.post(
-      "http://54.200.143.85:4200/getAudioListForChat",
+      "http://oyeyaaroapi.plmlogix.com/getAudioListForChat",
       headers: {"Content-Type": "application/json"},
     ).then((response) {
       var res = jsonDecode(response.body);
@@ -2323,7 +2431,7 @@ class ChatPrivateState extends State<ChatPrivate> {
     });
 
     http.post(
-      "http://54.200.143.85:4200/getAudioList",
+      "http://oyeyaaroapi.plmlogix.com/getAudioList",
       headers: {"Content-Type": "application/json"},
     ).then((response) {
       var res = jsonDecode(response.body);
@@ -2338,7 +2446,8 @@ class ChatPrivateState extends State<ChatPrivate> {
       child: this.chatId == ''
           ? Center(
               child: CircularProgressIndicator(
-                  // valueColor: AlwaysStoppedAnimation<Color>(themeColor)
+                  valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))
                   ))
           : StreamBuilder(
               stream: Firestore.instance
@@ -2352,8 +2461,8 @@ class ChatPrivateState extends State<ChatPrivate> {
                 if (!snapshot.hasData) {
                   return Center(
                       child: CircularProgressIndicator(
-                          // valueColor:
-                          //     AlwaysStoppedAnimation<Color>(themeColor)
+                          valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))
                           ));
                 } else {
                   listMessage = snapshot.data.documents;

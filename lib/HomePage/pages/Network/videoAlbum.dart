@@ -3,8 +3,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../ChatPage/playVideo.dart';
+// import '../../ChatPage/playVideo.dart';
+import '../../../feed/playVideo.dart';
 import './filter.dart';
 
 class VideosData {
@@ -119,7 +119,7 @@ class _VideosPageState extends State<VideosPage> {
   }
 
   fetchVidForFilter()async{
-    http.Response response = await http.post("http://54.200.143.85:4200/getVideos",
+    http.Response response = await http.post("http://oyeyaaroapi.plmlogix.com/getVideos",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"dialog_id": '${widget.dialogId}'}));
         res = jsonDecode(response.body);
@@ -134,7 +134,7 @@ class _VideosPageState extends State<VideosPage> {
     // SharedPreferences prefs = await SharedPreferences.getInstance();
     // var userPin = (prefs.getString('userPin'));
 
-    final result = await client.post("http://54.200.143.85:4200/getVideos",
+    final result = await client.post("http://oyeyaaroapi.plmlogix.com/getVideos",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"dialog_id": '$dialogId'}));
 
@@ -218,7 +218,7 @@ class _VideosPageState extends State<VideosPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      PlayScreen(url: videoData[i].videoUrl, type: 'network'),
+                      PlayVideo(mediaUrl: videoData[i].videoUrl),
                 ),
               );
             },

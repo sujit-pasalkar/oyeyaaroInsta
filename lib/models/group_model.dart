@@ -33,7 +33,7 @@ Future<List<GroupModel>> fetchGroups(http.Client client) async {
   var pin = prefs.getString('userPin');
   var body2=jsonEncode({"PinCode":"${pin}"});
   final response =
-  await client.post("http://54.200.143.85:4200/getGroups",
+  await client.post("http://oyeyaaroapi.plmlogix.com/getGroups",
       headers: {"Content-Type": "application/json"},body:body2);
    var data=jsonDecode(response.body);
    var datas= data["data"];

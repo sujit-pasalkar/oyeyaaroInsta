@@ -8,7 +8,6 @@ import 'dart:convert';
 import '../models/user.dart';
 import '../models/data-service.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class UploadImage extends StatefulWidget {
   final String tag;
@@ -40,39 +39,44 @@ class _UploadImage extends State<UploadImage> {
   }
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Post Feed"),
-        backgroundColor: Color(0xffb00bae3),
-      ),
-      backgroundColor: Colors.grey.shade400,
-      bottomNavigationBar: FlatButton(
-        padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
-        color: Colors.deepPurple,
-        disabledColor: Colors.grey,
-        child: Text(
-          "POST",
-          style: TextStyle(
-            color: Colors.white,
+    return Stack(
+      children: <Widget>[
+        Scaffold(
+          appBar: AppBar(
+            title: Text("Post Feed"),
+            backgroundColor: Color(0xffb00bae3),
           ),
-        ),
-        onPressed: (file == null || uploading) ? null : _postFeed,
-      ),
-      body: Stack(
-        children: <Widget>[
-          ListView(
+          // backgroundColor: Colors.grey.shade400,
+          bottomNavigationBar: FlatButton(
+            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
+            color: Colors.deepPurple,
+            disabledColor: Colors.grey,
+            child: Text(
+              "POST",
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+            onPressed: (file == null || uploading) ? null : _postFeed,
+          ),
+          body: Column(
             children: <Widget>[
               Container(
                 color: Colors.white,
                 padding: EdgeInsets.only(bottom: 5.0),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage:
-                        CachedNetworkImageProvider(currentUser.photoURL),
+                  leading: ClipOval(
+                    child: Container(
+                    height: 60.0,
+                    width: 60.0,
+                    child: Image(
+                      image: NetworkImage(currentUser.photoURL),
+                    ),
+                  ),
                   ),
                   title: Text(
                     currentUser.username,
-                    style: TextStyle(fontWeight: FontWeight.w400),
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   subtitle: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -80,8 +84,8 @@ class _UploadImage extends State<UploadImage> {
                       InkWell(
                         child: Container(
                           padding: EdgeInsets.only(
-                            top: 2.5,
-                            bottom: 2.5,
+                            top: 0.5,
+                            bottom: 0.5,
                             left: 10.0,
                             right: 5.0,
                           ),
@@ -106,11 +110,36 @@ class _UploadImage extends State<UploadImage> {
                   ),
                 ),
               ),
-              Container(
+              file != null
+                  ? Container(
+                      padding: EdgeInsets.only(
+                          top: 3.0, bottom: 3.0, left: 8.0, right: 8.0),
+                      color: Colors.white,
+                      child: TextFormField(
+                        controller: captionController,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        decoration: InputDecoration(
+                          hintText: "Write a caption...",
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade800,
+                          ),
+                          border: InputBorder.none,
+                        ),
+                        enabled: file != null,
+                        autovalidate: true,
+                        validator: _validateCaption,
+                      ),
+                    )
+                  : SizedBox(
+                      height: 0.0,
+                      width: 0.0,
+                    ),
+              Expanded(
                 child: file == null
                     ? Container(
                         alignment: Alignment.center,
-                        height: 200.0,
+                        // height: 200.0,
                         color: Colors.white,
                         child: RaisedButton.icon(
                           color: Colors.green,
@@ -132,7 +161,7 @@ class _UploadImage extends State<UploadImage> {
                           Image.file(
                             file,
                             width: double.infinity,
-                            height: 300.0,
+                            // height: 300.0,
                             fit: BoxFit.cover,
                           ),
                           Positioned(
@@ -150,54 +179,23 @@ class _UploadImage extends State<UploadImage> {
                               ),
                             ),
                           ),
-                          // Positioned(
-                          //   bottom: 0.0,
-                          //   right: 0.0,
-                          //   child: Container(
-                          //     color: Colors.black.withOpacity(0.50),
-                          //     child: IconButton(
-                          //       icon: Icon(
-                          //         privacy.icon,
-                          //         color: Colors.white,
-                          //       ),
-                          //       tooltip: "Privacy",
-                          //       onPressed: _changePrivacy,
-                          //     ),
-                          //   ),
-                          // ),
                         ],
                       ),
               ),
-              Container(
-                padding: EdgeInsets.all(8.0),
-                color: Colors.white,
-                child: TextFormField(
-                  controller: captionController,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
-                  decoration: InputDecoration(
-                    hintText: "Write a caption...",
-                    border: InputBorder.none,
-                  ),
-                  enabled: file != null,
-                  autovalidate: true,
-                  validator: _validateCaption,
-                ),
-              ),
             ],
           ),
-          uploading
-              ? Container(
-                  alignment: Alignment.center,
-                  color: Colors.black.withOpacity(0.50),
-                  child: CircularProgressIndicator(),
-                )
-              : SizedBox(
-                  width: 0.0,
-                  height: 0.0,
-                ),
-        ],
-      ),
+        ),
+        uploading
+            ? Container(
+                alignment: Alignment.center,
+                color: Colors.black.withOpacity(0.50),
+                child: CircularProgressIndicator(),
+              )
+            : SizedBox(
+                width: 0.0,
+                height: 0.0,
+              ),
+      ],
     );
   }
 
@@ -218,6 +216,17 @@ class _UploadImage extends State<UploadImage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
+              Container(
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.only(bottom: 10.0),
+                child: Text(
+                  "Select source...",
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               FlatButton(
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: Row(
@@ -422,14 +431,14 @@ class _UploadImage extends State<UploadImage> {
     DocumentReference tagReference =
         Firestore.instance.collection('insta_tags').document("tags");
 
-    http.Response response = await http.get('http://54.200.143.85:4200/time');
+    http.Response response = await http.get('http://oyeyaaroapi.plmlogix.com/time');
     int timestamp = int.parse(jsonDecode(response.body)['timestamp']);
 
     List<String> hashtags = List<String>();
     description
+        .replaceAll("\\n", " ")
         .split(" ")
         .where((value) {
-          value.replaceAll("\\n", "");
           value.replaceAll(" ", "");
           return value.startsWith("#");
         })

@@ -103,7 +103,7 @@ class _AudioListState extends State<AudioList> {
           print('$checkedSongs');
           var shuffledSong = (checkedSongs..shuffle()).first;
           print('suffled songs : $shuffledSong');
-          _play('http://54.200.143.85:4200/Audio/' + shuffledSong,
+          _play('http://oyeyaaroapi.plmlogix.com/Audio/' + shuffledSong,
               searchresult.indexOf(shuffledSong), shuffledSong);
         } else
           playNextChecked();
@@ -111,7 +111,7 @@ class _AudioListState extends State<AudioList> {
         if (shuffleSongs) {
           var shuffledSong = (searchresult..shuffle()).first;
           print('suffled songs : $shuffledSong');
-          _play('http://54.200.143.85:4200/Audio/' + shuffledSong,
+          _play('http://oyeyaaroapi.plmlogix.com/Audio/' + shuffledSong,
               searchresult.indexOf(shuffledSong), shuffledSong);
         } else
           playNext();
@@ -229,7 +229,7 @@ class _AudioListState extends State<AudioList> {
                                   print(
                                       'suffled songs : $shuffledSong and index : ${searchresult.indexOf(shuffledSong)}');
                                   _play(
-                                      'http://54.200.143.85:4200/Audio/' +
+                                      'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                           shuffledSong,
                                       searchresult.indexOf(shuffledSong),
                                       shuffledSong);
@@ -243,7 +243,7 @@ class _AudioListState extends State<AudioList> {
                                       this.checkedSongs[playListIndex]); //0
                                 });
                                 _play(
-                                    'http://54.200.143.85:4200/Audio/' +
+                                    'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                         checkedSongs[playListIndex].toString(),
                                     curr_id,
                                     checkedSongs[playListIndex]);
@@ -255,13 +255,13 @@ class _AudioListState extends State<AudioList> {
                                     (searchresult..shuffle()).first;
                                 print('suffled songs : $shuffledSong');
                                 _play(
-                                    'http://54.200.143.85:4200/Audio/' +
+                                    'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                         shuffledSong,
                                     searchresult.indexOf(shuffledSong),
                                     shuffledSong);
                               } else
                                 _play(
-                                    'http://54.200.143.85:4200/Audio/' +
+                                    'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                         searchresult[0],
                                     0,
                                     searchresult[0]);
@@ -382,7 +382,7 @@ class _AudioListState extends State<AudioList> {
                                                     _duration == null) {
                                                   _stop().then((res) {
                                                     _play(
-                                                        'http://54.200.143.85:4200/Audio/' +
+                                                        'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                             searchresult[index],
                                                         // .toString(),
                                                         index,
@@ -390,7 +390,7 @@ class _AudioListState extends State<AudioList> {
                                                   });
                                                 } else {
                                                   _play(
-                                                      'http://54.200.143.85:4200/Audio/' +
+                                                      'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                           searchresult[index],
                                                       // .toString(),
                                                       index,
@@ -435,7 +435,7 @@ class _AudioListState extends State<AudioList> {
 
   getSongs() async {
     var response = await http.post(
-      "http://54.200.143.85:4200/getAudioList",
+      "http://oyeyaaroapi.plmlogix.com/getAudioList",
       headers: {"Content-Type": "application/json"},
     );
     var res = jsonDecode(response.body);
@@ -521,7 +521,7 @@ class _AudioListState extends State<AudioList> {
         playingSongName = searchresult[curr_id];
       });
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               searchresult[curr_id], //.toString(),
           curr_id,
           searchresult[curr_id]);
@@ -532,7 +532,7 @@ class _AudioListState extends State<AudioList> {
       });
       print('else song name 1: ${this.searchresult[curr_id]}');
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               searchresult[curr_id], //.toString(),
           curr_id,
           searchresult[curr_id]);
@@ -552,7 +552,7 @@ class _AudioListState extends State<AudioList> {
         // curr_id + 1;
       });
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               checkedSongs[playListIndex], //.toString(),
           curr_id,
           checkedSongs[playListIndex]);
@@ -564,7 +564,7 @@ class _AudioListState extends State<AudioList> {
       });
       print('else song name 1: ${this.checkedSongs[playListIndex]}');
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               checkedSongs[playListIndex], //.toString(),
           curr_id,
           checkedSongs[playListIndex]);

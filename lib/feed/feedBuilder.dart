@@ -106,7 +106,7 @@ class _FeedBuilder extends State<FeedBuilder> {
 
   @override
   void initState() {
-    // avatarUrl = "http://54.200.143.85:4200/getProfileImageNow/$ownerId";
+    // avatarUrl = "http://oyeyaaroapi.plmlogix.com/getProfileImageNow/$ownerId";
     time = _calculateTime();
     super.initState();
   }
@@ -130,13 +130,13 @@ class _FeedBuilder extends State<FeedBuilder> {
               borderRadius: BorderRadius.circular(40.0),
               child:Image(
                 image: 
-               NetworkImage('http://54.200.143.85:4200/getAvatarImageNow/$ownerId'),
+               NetworkImage('http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/$ownerId'),
                fit: BoxFit.cover,
               )
               // CachedNetworkImage
               // (
                 // imageUrl:
-                //     "http://54.200.143.85:4200/getAvatarImageNow/$ownerId",
+                //     "http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/$ownerId",
                 //     fit: BoxFit.cover,
                 //     alignment: Alignment.center,
                 // placeholder: Padding(
@@ -159,7 +159,7 @@ class _FeedBuilder extends State<FeedBuilder> {
         //   backgroundColor: Colors.white,
         //   backgroundImage: //CachedNetworkImageProvider
         //   NetworkImage(
-        //     'http://54.200.143.85:4200/getAvatarImageNow/$ownerId',
+        //     'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/$ownerId',
         //     // avatarUrl,
 
         //     // errorListener: () {

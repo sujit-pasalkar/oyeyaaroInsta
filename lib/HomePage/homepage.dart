@@ -325,7 +325,7 @@
 //     print('in GET Profile******************');
 //     try {
 //       http.Response response = await http.post(
-//           "http://54.200.143.85:4200/getProfile",
+//           "http://oyeyaaroapi.plmlogix.com/getProfile",
 //           headers: {"Content-Type": "application/json"},
 //           body: jsonEncode({"pin": '${this.userPin}'}));
 //       var profileResult = jsonDecode(response.body);

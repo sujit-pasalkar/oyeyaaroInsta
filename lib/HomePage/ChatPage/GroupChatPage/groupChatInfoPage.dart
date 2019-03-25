@@ -37,7 +37,7 @@ class _GroupChatInfoStatePage extends State<GroupChatInfoPage> {
     var body = jsonEncode(
         {"dialog_id": "${widget.dialogId}", "user_id": "${this.myId}"});
 
-    var result = await http.post("http://54.200.143.85:4200/isAdmin",
+    var result = await http.post("http://oyeyaaroapi.plmlogix.com/isAdmin",
         headers: {"Content-Type": "application/json"}, body: body);
     //     .then((response) {
     var res = jsonDecode(result.body);

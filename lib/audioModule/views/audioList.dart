@@ -163,7 +163,7 @@ class _AudioListState extends State<AudioList> {
                                           color: Colors.black,
                                           onPressed: () {
                                             _play(
-                                                'http://54.200.143.85:4200/Audio/' +
+                                                'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                     searchresult[index]
                                                         .toString(),
                                                 index);
@@ -186,7 +186,7 @@ class _AudioListState extends State<AudioList> {
                                             msg: "Downloading...",
                                           );
                                           String path = await download(
-                                              'http://54.200.143.85:4200/Audio/' +
+                                              'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                   searchresult[index]
                                                       .toString());
                                           Navigator.pop(context, path);
@@ -266,7 +266,7 @@ class _AudioListState extends State<AudioList> {
 
   getSongs() async {
     var response = await http.post(
-      "http://54.200.143.85:4200/getAudioList",
+      "http://oyeyaaroapi.plmlogix.com/getAudioList",
       headers: {"Content-Type": "application/json"},
     );
     var res = jsonDecode(response.body);
@@ -311,7 +311,7 @@ class _AudioListState extends State<AudioList> {
 
   Future<dynamic> download(String url) async {
     applicationDir = (await getExternalStorageDirectory()).path;
-    String songnm = url.replaceAll('http://54.200.143.85:4200/Audio/', '');
+    String songnm = url.replaceAll('http://oyeyaaroapi.plmlogix.com/Audio/', '');
     String dir = '$applicationDir/OyeYaaro${Config.musicDownloadFolderPath}';
     if (!Directory(dir).existsSync()) {
       Directory(dir).createSync(recursive: true);
@@ -351,7 +351,7 @@ class _AudioListState extends State<AudioList> {
         currentId = currentId + 1;
       });
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               searchresult[currentId].toString(),
           currentId);
     } else {
@@ -359,7 +359,7 @@ class _AudioListState extends State<AudioList> {
         currentId = 0;
       });
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               searchresult[currentId].toString(),
           currentId);
     }
@@ -371,7 +371,7 @@ class _AudioListState extends State<AudioList> {
         currentId = currentId - 1;
       });
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               searchresult[currentId].toString(),
           currentId);
     } else {
@@ -379,7 +379,7 @@ class _AudioListState extends State<AudioList> {
         currentId = searchresult.length - 1;
       });
       _play(
-          'http://54.200.143.85:4200/Audio/' +
+          'http://oyeyaaroapi.plmlogix.com/Audio/' +
               searchresult[currentId].toString(),
           currentId);
     }

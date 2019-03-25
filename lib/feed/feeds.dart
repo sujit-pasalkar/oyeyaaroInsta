@@ -233,6 +233,7 @@ class _FeedsState extends State<Feeds> with SingleTickerProviderStateMixin {
   }
 
   _getFeed({@required bool silent}) async {
+    //service returned unsorted response
     if (!silent) {
       setState(() {
         loading = true;
@@ -241,7 +242,7 @@ class _FeedsState extends State<Feeds> with SingleTickerProviderStateMixin {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String userId = currentUser.userId;
-    String url = 'http://54.200.143.85:4200/getFeeds?userId=' + userId;
+    String url = 'http://oyeyaaroapi.plmlogix.com/getFeeds?userId=' + userId;
     HttpClient httpClient = new HttpClient();
 
     try {
@@ -251,6 +252,7 @@ class _FeedsState extends State<Feeds> with SingleTickerProviderStateMixin {
         String json = await response.transform(utf8.decoder).join();
         prefs.setString("feed", json);
         originalData = jsonDecode(json).cast<Map<String, dynamic>>();
+        print('original data ------>: $originalData');
         _generateFeed(silent: false);
       } else {
         print('Error getting a feed:\nHttp status ${response.statusCode}');
@@ -271,6 +273,11 @@ class _FeedsState extends State<Feeds> with SingleTickerProviderStateMixin {
       });
     }
     List<FeedBuilder> listOfPosts = [];
+    
+    originalData.sort((a, b) {
+     if (a['timestamp'] > b['timestamp']) return 0;
+     return 1;
+   });
 
     for (Map<String, dynamic> postData in originalData) {
       if (postData['visibility'] == currentUser.filterActive ||

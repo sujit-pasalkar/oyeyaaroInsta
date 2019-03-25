@@ -506,7 +506,7 @@ class _AudioRecordingScreenState extends State<AudioRecordingScreen> {
     _scaffoldKey.currentState.showSnackBar(snackBar);
 
     for (String audio in this.selectedIndexes) {
-      var result = await http.get('http://54.200.143.85:4200/time');
+      var result = await http.get('http://oyeyaaroapi.plmlogix.com/time');
       var res = jsonDecode(result.body);
       var timestamp = res['timestamp'];
 
@@ -515,7 +515,7 @@ class _AudioRecordingScreenState extends State<AudioRecordingScreen> {
       var stream =
           new http.ByteStream(DelegatingStream.typed(audioFile.openRead()));
       var length = await audioFile.length();
-      var uri = Uri.parse("http://54.200.143.85:4200/uploadAudio");
+      var uri = Uri.parse("http://oyeyaaroapi.plmlogix.com/uploadAudio");
       var request = new http.MultipartRequest("POST", uri);
 
       request.headers["time"] = timestamp;
@@ -546,7 +546,7 @@ class _AudioRecordingScreenState extends State<AudioRecordingScreen> {
             'idTo': this.groupList[position].ids,
             'timestamp': timestamp,
             'msg':
-                "http://54.200.143.85:4200/Media/Audios/${groupList[position].ids}/${timestamp}.mp3",
+                "http://oyeyaaroapi.plmlogix.com/Media/Audios/${groupList[position].ids}/${timestamp}.mp3",
             'type': 2,
             'members': '',
             'senderName': currentUser.username,
@@ -568,7 +568,7 @@ class _AudioRecordingScreenState extends State<AudioRecordingScreen> {
   getGroupsMember(peerId) async {
     try {
       http.Response response = await http.post(
-          "http://54.200.143.85:4200/getJoinedArray",
+          "http://oyeyaaroapi.plmlogix.com/getJoinedArray",
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"dialog_id": '${peerId}'}));
       var groupMembers = jsonDecode(response.body);

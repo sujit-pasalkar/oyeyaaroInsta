@@ -111,21 +111,22 @@ class CommonFunctions {
   }
 
   Future<String> compressVideo(String videoFilePath) async{
-   File f = new File(videoFilePath);
-   String dir = (await getExternalStorageDirectory()).path;
-   String fname = path.basename(f.path);
-    String finaldir = '$dir/OyeYaaro/sent';
+    File f = new File(videoFilePath);
+    String dir = (await getExternalStorageDirectory()).path;
+    String fname = path.basename(f.path);
+     String finaldir = '$dir/OyeYaaro/sent';
 
-   if (!Directory(finaldir).existsSync()) {
-     Directory(finaldir).createSync(recursive: true);
-   }
-   String finalfilepath = '$finaldir/VID_${new DateTime.now().millisecondsSinceEpoch}_$fname';
-   await _flutterFFmpeg.execute(
-           '-y -i $videoFilePath -c:v libx264 -crf 34 -preset veryfast -c:a copy -b:v 700k $finalfilepath')
-    //await _flutterFFmpeg.execute(
-    //       '-y -i $videoFilePath $finalfilepath')
-       .then((rc) => print("FFmpeg process exited with rc $rc"));
-       return finalfilepath;
- }
- 
+    if (!Directory(finaldir).existsSync()) {
+      Directory(finaldir).createSync(recursive: true);
+    }
+    String finalfilepath = '$finaldir/VID_${new DateTime.now().millisecondsSinceEpoch}_$fname';
+    await _flutterFFmpeg.execute(
+            '-y -i $videoFilePath -c:v libx264 -crf 34 -preset superfast -c:a copy -b:v 700k $finalfilepath')
+     //await _flutterFFmpeg.execute(
+     //       '-y -i $videoFilePath $finalfilepath')
+        .then((rc) => print("FFmpeg process exited with rc $rc"));
+        return finalfilepath;
+  }
+
+  
 }

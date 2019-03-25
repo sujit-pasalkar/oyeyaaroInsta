@@ -89,7 +89,7 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
   Future<void> initializeCameras() async {
     try {
       cameras = await availableCameras();
-      controller = CameraController(cameras[1], ResolutionPreset.high);
+      controller = CameraController(cameras[0], ResolutionPreset.high);
       controller.initialize().then((_) {
         if (!mounted) {
           return;
@@ -254,7 +254,7 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
 
   void onCameraSelected(CameraDescription cameraDescription) async {
     if (controller != null) await controller.dispose();
-    controller = CameraController(cameraDescription, ResolutionPreset.medium);
+    controller = CameraController(cameraDescription, ResolutionPreset.high);
 
     controller.addListener(() {
       if (mounted) setState(() {});

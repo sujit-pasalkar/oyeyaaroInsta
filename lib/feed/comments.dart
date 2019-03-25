@@ -60,16 +60,18 @@ class _CommentsState extends State<Comments> {
             style: TextStyle(color: Colors.white),
             decoration: InputDecoration(
               border: InputBorder.none,
-              labelText: 'Write a comment...',
-              labelStyle: TextStyle(
+              hintText: 'Write a comment...',
+              hintStyle: TextStyle(
                 color: Colors.white70,
               ),
               suffixIcon: IconButton(
                 color: Colors.white,
                 disabledColor: Colors.white70,
                 icon: Icon(Icons.send),
-                onPressed: _commentController.text.isEmpty
-                    ? null
+                onPressed: _commentController.text.isEmpty||_commentController.text.length==0
+                    ? (){
+                      print('blank');
+                    }
                     : () {
                         addComment(_commentController.text);
                       },

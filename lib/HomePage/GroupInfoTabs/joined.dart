@@ -54,7 +54,7 @@ Future<List<JoinedUsers>> fetchUsers(peerId, http.Client client) async {
 
   var bodyData = jsonEncode({"dialog_id": "${peerId}"});
   print('JOINED FETCHED DATA:: ${bodyData}');
-  final response = await client.post('http://54.200.143.85:4200/getJoined',
+  final response = await client.post('http://oyeyaaroapi.plmlogix.com/getJoined',
       headers: {"Content-Type": "application/json"}, body: bodyData);
   var res = jsonDecode(response.body);
   print('RES-------->${res}');
@@ -130,25 +130,31 @@ class UsersList extends StatelessWidget {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(40.0),
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                      'http://54.200.143.85:4200/getAvatarImageNow/${users[position].UserPin}',
-                                  fit: BoxFit.cover,
-                                  placeholder: Padding(
-                                    padding: EdgeInsets.all(15),
-                                    child: SizedBox(
-                                      child: CircularProgressIndicator(
-                                          valueColor:
-                                              new AlwaysStoppedAnimation<Color>(
-                                                  Color(0xffb00bae3)),
-                                          strokeWidth: 1.0),
-                                    ),
-                                  ),
-                                  errorWidget: new Icon(
-                                    Icons.error,
-                                    color: Colors.black,
-                                  ),
-                                ),
+                                child: 
+                                // FadeInImage.memoryNetwork(
+                                //   placeholder: 
+                                //   image: 'https://picsum.photos/250?image=9',
+                                // ),
+                                Image.network('http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${users[position].UserPin}',fit: BoxFit.cover),
+                                // CachedNetworkImage(
+                                //   imageUrl:
+                                //       'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${users[position].UserPin}',
+                                //   fit: BoxFit.cover,
+                                //   placeholder: Padding(
+                                //     padding: EdgeInsets.all(15),
+                                //     child: SizedBox(
+                                //       child: CircularProgressIndicator(
+                                //           valueColor:
+                                //               new AlwaysStoppedAnimation<Color>(
+                                //                   Color(0xffb00bae3)),
+                                //           strokeWidth: 1.0),
+                                //     ),
+                                //   ),
+                                //   errorWidget: new Icon(
+                                //     Icons.error,
+                                //     color: Colors.black,
+                                //   ),
+                                // ),
                               ),
                             ),
                           ),
@@ -192,7 +198,7 @@ class UsersList extends StatelessWidget {
       "receiverNumber": Mobile
     });
     http
-        .post("http://54.200.143.85:4200/startChat",
+        .post("http://oyeyaaroapi.plmlogix.com/startChat",
             headers: {"Content-Type": "application/json"}, body: bodyPMsg)
         .then((response) {
       var res = jsonDecode(response.body);

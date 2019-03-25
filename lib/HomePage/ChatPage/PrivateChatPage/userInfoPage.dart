@@ -36,7 +36,7 @@ class _UserInfoStatePage extends State<UserInfoPage> {
   Future getProfile() async {
     var body = jsonEncode({"pin": "${widget.pin}"});
 
-    var result = await http.post("http://54.200.143.85:4200/getProfile",
+    var result = await http.post("http://oyeyaaroapi.plmlogix.com/getProfile",
         headers: {"Content-Type": "application/json"}, body: body);
     var res = jsonDecode(result.body);
     print('******profle data IS :${res}');
@@ -61,7 +61,7 @@ class _UserInfoStatePage extends State<UserInfoPage> {
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(widget.name),
                 background: Image.network(
-                  'http://54.200.143.85:4200/profiles${snapshot.data['data'][0]['ImageThen']}',
+                  'http://oyeyaaroapi.plmlogix.com/profiles${snapshot.data['data'][0]['ImageThen']}',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -78,7 +78,7 @@ class _UserInfoStatePage extends State<UserInfoPage> {
                         //   foregroundColor: Theme.of(context).primaryColor,
                         //   backgroundColor: Colors.grey,
                         //   backgroundImage: new NetworkImage(
-                        //       "http://54.200.143.85:4200/profiles/then/${posts[position].receiverPin}.jpg"),
+                        //       "http://oyeyaaroapi.plmlogix.com/profiles/then/${posts[position].receiverPin}.jpg"),
                         // ),
                         title: new Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

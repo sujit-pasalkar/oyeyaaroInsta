@@ -9,7 +9,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 Future<List<MissedUsers>> fetchUsers(peerId, http.Client client) async {
   var bodyData = jsonEncode({"dialog_id": "${peerId}"});
-  final response = await client.post('http://54.200.143.85:4200/getMissed',
+  final response = await client.post('http://oyeyaaroapi.plmlogix.com/getMissed',
       headers: {"Content-Type": "application/json"}, body: bodyData);
   // Use the compute function to run parsePhotos in a separate isolate
   var res = jsonDecode(response.body);
@@ -107,26 +107,28 @@ class PhotosList extends StatelessWidget {
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(40.0),
-                              child: CachedNetworkImage(
-                                imageUrl:
-                                    'http://54.200.143.85:4200/getAvatarImageNow/${users[position].UserPin}',
-                                // 'http://54.200.143.85:4200/profiles${users[position].thumbnail}',
-                                fit: BoxFit.cover,
-                                placeholder: Padding(
-                                  padding: EdgeInsets.all(15),
-                                  child: SizedBox(
-                                    child: CircularProgressIndicator(
-                                        valueColor:
-                                            new AlwaysStoppedAnimation<Color>(
-                                                Color(0xffb00bae3)),
-                                        strokeWidth: 1.0),
-                                  ),
-                                ),
-                                errorWidget: new Icon(
-                                  Icons.error,
-                                  color: Colors.black,
-                                ),
-                              ),
+                              child:
+                              Image.network('http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${users[position].UserPin}',fit: BoxFit.cover,)
+                              //  CachedNetworkImage(
+                              //   imageUrl:
+                              //       'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${users[position].UserPin}',
+                              //   // 'http://oyeyaaroapi.plmlogix.com/profiles${users[position].thumbnail}',
+                              //   fit: BoxFit.cover,
+                              //   placeholder: Padding(
+                              //     padding: EdgeInsets.all(15),
+                              //     child: SizedBox(
+                              //       child: CircularProgressIndicator(
+                              //           valueColor:
+                              //               new AlwaysStoppedAnimation<Color>(
+                              //                   Color(0xffb00bae3)),
+                              //           strokeWidth: 1.0),
+                              //     ),
+                              //   ),
+                              //   errorWidget: new Icon(
+                              //     Icons.error,
+                              //     color: Colors.black,
+                              //   ),
+                              // ),
                             )),
 
                         //

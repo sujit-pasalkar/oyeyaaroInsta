@@ -166,31 +166,32 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(40.0),
-                                child: CachedNetworkImage(
-                                  imageUrl: 
-                                  // !searchresult[index]
-                                  //         ['ImageThen']
-                                  //         .contains('default')
-                                  //     ? 
-                                  'http://54.200.143.85:4200/getAvatarImageNow/${searchresult[index]['PinCode']}',
-                                      // "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                      // : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}",
-                                      fit: BoxFit.cover,
-                                  placeholder: Padding(
-                                    padding: EdgeInsets.all(15),
-                                    child: SizedBox(
-                                      child: CircularProgressIndicator(
-                                          valueColor:
-                                              new AlwaysStoppedAnimation<Color>(
-                                                  Color(0xffb00bae3)),
-                                          strokeWidth: 1.0),
-                                    ),
-                                  ),
-                                  errorWidget: new Icon(
-                                    Icons.error,
-                                    color: Colors.black,
-                                  ),
-                                ),
+                                child: 
+                                Image.network('http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${searchresult[index]['PinCode']}',fit: BoxFit.cover,)
+                                // CachedNetworkImage(
+                                //   imageUrl: 
+                                //   // !searchresult[index]
+                                //   //         ['ImageThen']
+                                //   //         .contains('default')
+                                //   //     ? 
+                                //   'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${searchresult[index]['PinCode']}',
+                                //       // : "http://oyeyaaroapi.plmlogix.com/profiles${searchresult[index]['ImageNow']}",
+                                //       fit: BoxFit.cover,
+                                //   placeholder: Padding(
+                                //     padding: EdgeInsets.all(15),
+                                //     child: SizedBox(
+                                //       child: CircularProgressIndicator(
+                                //           valueColor:
+                                //               new AlwaysStoppedAnimation<Color>(
+                                //                   Color(0xffb00bae3)),
+                                //           strokeWidth: 1.0),
+                                //     ),
+                                //   ),
+                                //   errorWidget: new Icon(
+                                //     Icons.error,
+                                //     color: Colors.black,
+                                //   ),
+                                // ),
                               ),
                             ),
                                     // child: Container(
@@ -203,8 +204,8 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
                                     //       image: new NetworkImage(searchresult[
                                     //                   index]['ImageNow']
                                     //               .contains('default')
-                                    //           ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                    //           : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"),
+                                    //           ? "http://oyeyaaroapi.plmlogix.com/profiles${searchresult[index]['ImageThen']}"
+                                    //           : "http://oyeyaaroapi.plmlogix.com/profiles${searchresult[index]['ImageNow']}"),
                                     //     ),
                                     //   ),
                                     // ),
@@ -309,13 +310,13 @@ class _CreateNewGroupState extends State<CreateNewGroup> {
                                           image: new DecorationImage(
                                             fit: BoxFit.cover,
                                             image: new NetworkImage(
-                                              'http://54.200.143.85:4200/getAvatarImageNow/${searchresult[index]['PinCode']}',
+                                              'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${searchresult[index]['PinCode']}',
                                               
                                               // searchresult[
                                               //           index]['ImageNow']
                                               //       .contains('default')
-                                              //   ? "http://54.200.143.85:4200/profiles${searchresult[index]['ImageThen']}"
-                                              //   : "http://54.200.143.85:4200/profiles${searchresult[index]['ImageNow']}"
+                                              //   ? "http://oyeyaaroapi.plmlogix.com/profiles${searchresult[index]['ImageThen']}"
+                                              //   : "http://oyeyaaroapi.plmlogix.com/profiles${searchresult[index]['ImageNow']}"
                                               ),
                                           ),
                                         ),

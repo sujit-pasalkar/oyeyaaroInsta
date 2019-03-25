@@ -92,7 +92,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
   Map likes;
   int likeCount;
 
-  String avatarUrl;
+  // String avatarUrl;
 
   bool liked;
   bool showHeart = false;
@@ -115,7 +115,7 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
 
   @override
   void initState() {
-    avatarUrl = "http://54.200.143.85:4200/profiles/now/$ownerId.jpg";
+    // avatarUrl = "http://oyeyaaroapi.plmlogix.com/profiles/now/$ownerId.jpg";
     time = _calculateTime();
     super.initState();
   }
@@ -132,8 +132,9 @@ class _UserFeedBuilder extends State<UserFeedBuilder> {
    return ListTile(
      leading: 
      CircleAvatar(
-       backgroundImage: CachedNetworkImageProvider(
-         avatarUrl,
+       backgroundImage:
+        NetworkImage('http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/$ownerId',//fit: BoxFit.cover
+        //  avatarUrl,
        ),
      ),
      title: Text(username),

@@ -51,7 +51,7 @@ Future<List<JoinedUsers>> fetchJoinUsers(peerId, http.Client client) async {
   var bodyData = jsonEncode({"dialog_id": "${peerId}"});
   print('JOINED FETCHED DATA:: ${bodyData}');
   //join
-  final responseJ = await client.post('http://54.200.143.85:4200/getJoined',
+  final responseJ = await client.post('http://oyeyaaroapi.plmlogix.com/getJoined',
       headers: {"Content-Type": "application/json"}, body: bodyData);
   // Use the compute function to run parsePhotos in a separate isolate
   var resJ = jsonDecode(responseJ.body);
@@ -59,7 +59,7 @@ Future<List<JoinedUsers>> fetchJoinUsers(peerId, http.Client client) async {
   arr = await removeSelf(userPin, resJ["users"]);
 
   //missed
-  final responseM = await client.post('http://54.200.143.85:4200/getMissed',
+  final responseM = await client.post('http://oyeyaaroapi.plmlogix.com/getMissed',
       headers: {"Content-Type": "application/json"}, body: bodyData);
   // Use the compute function to run parsePhotos in a separate isolate
   var resM = jsonDecode(responseM.body);
@@ -151,7 +151,7 @@ class _MembersState extends State<Members> {
                         image: DecorationImage(
                           fit: BoxFit.cover,
                           image: NetworkImage(
-                              "http://54.200.143.85:4200/profiles${data[index].thumbnail}"),
+                              "http://oyeyaaroapi.plmlogix.com/profiles${data[index].thumbnail}"),
                         ),
                       ),
                     ),

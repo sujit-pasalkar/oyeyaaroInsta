@@ -8,7 +8,7 @@ class ListViewPosts extends StatelessWidget {
   final ScrollController hideButtonController;
   final List<ChatModel> posts;
 
-  // String avatarUrl = "http://54.200.143.85:4200/profiles/now/";
+  // String avatarUrl = "http://oyeyaaroapi.plmlogix.com/profiles/now/";
   ListViewPosts({Key key, this.posts, @required this.hideButtonController})
       : super(key: key);
 
@@ -46,24 +46,27 @@ class ListViewPosts extends StatelessWidget {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(40.0),
-                                  child: CachedNetworkImage(
-                                    imageUrl:'http://54.200.143.85:4200/getAvatarImageNow/${posts[position].receiverPin}',
-                                    fit: BoxFit.cover,
-                                    placeholder: Padding(
-                                      padding: EdgeInsets.all(15),
-                                      child: SizedBox(
-                                        child: CircularProgressIndicator(
-                                            valueColor:
-                                                new AlwaysStoppedAnimation<
-                                                    Color>(Color(0xffb00bae3)),
-                                            strokeWidth: 1.0),
-                                      ),
-                                    ),
-                                    errorWidget: new Icon(
-                                      Icons.error,
-                                      color: Colors.black,
-                                    ),
-                                  ),
+                                  //   fit: BoxFit.cover,
+                                  //   fit: BoxFit.cover,
+                                  child:Image.network('http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${posts[position].receiverPin}',fit: BoxFit.cover,)
+                                  //  CachedNetworkImage(
+                                  //   imageUrl:'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${posts[position].receiverPin}',
+                                  //   fit: BoxFit.cover,
+                                  //   placeholder: Padding(
+                                  //     padding: EdgeInsets.all(15),
+                                  //     child: SizedBox(
+                                  //       child: CircularProgressIndicator(
+                                  //           valueColor:
+                                  //               new AlwaysStoppedAnimation<
+                                  //                   Color>(Color(0xffb00bae3)),
+                                  //           strokeWidth: 1.0),
+                                  //     ),
+                                  //   ),
+                                  //   errorWidget: new Icon(
+                                  //     Icons.error,
+                                  //     color: Colors.black,
+                                  //   ),
+                                  // ),
                                 )),
                             //  Container(
                             //   margin: EdgeInsets.all(2.0),
@@ -75,11 +78,11 @@ class ListViewPosts extends StatelessWidget {
                             //       image:
                             //           // posts[position].isNowImg
                             //           //     ?
-                            //            NetworkImage( 'http://54.200.143.85:4200/getAvatarImageNow/${posts[position].receiverPin}'
-                            //           //         "http://54.200.143.85:4200/profiles/now/${posts[position].receiverPin}.jpg"
+                            //            NetworkImage( 'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${posts[position].receiverPin}'
+                            //           //         "http://oyeyaaroapi.plmlogix.com/profiles/now/${posts[position].receiverPin}.jpg"
                             //           )
                             //           //     : NetworkImage(
-                            //           //         "http://54.200.143.85:4200/profiles/then/${posts[position].receiverPin}.jpg"),
+                            //           //         "http://oyeyaaroapi.plmlogix.com/profiles/then/${posts[position].receiverPin}.jpg"),
                             //     ),
                             //   ),
                             // ),

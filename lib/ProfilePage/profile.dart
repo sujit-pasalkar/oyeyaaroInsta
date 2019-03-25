@@ -49,6 +49,7 @@ class ProfilePageState extends State<ProfilePage>
   File imageFile;
 
   TabController _tabController;
+  int tabControllerIndex = 0;
 
   @override
   void initState() {
@@ -58,8 +59,22 @@ class ProfilePageState extends State<ProfilePage>
     _imageNow = "";
     _imageThen = "";
     _getUser();
-    _tabController = new TabController(initialIndex: 0, length: 4, vsync: this);
+    _tabController = new TabController(initialIndex: 0, length: 2, vsync: this);
+    _tabController.addListener(_handleTabSelection);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _handleTabSelection() {
+    print("_handleTabSelection :index: ${_tabController.index}");
+    setState(() {
+      tabControllerIndex = _tabController.index;
+    });
   }
 
   @override
@@ -68,32 +83,34 @@ class ProfilePageState extends State<ProfilePage>
       key: _key,
       appBar: AppBar(
         title: Text("Profile"),
-        actions: <Widget>[
-          _joined && !_loggedInUser
-              ? IconButton(
-                  icon: Icon(Icons.chat),
-                  onPressed: _onTapChatUser,
-                )
-              : SizedBox(
-                  height: 0.0,
-                  width: 0.0,
-                ),
-          _loggedInUser
-              ? _enabled
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.save,
+        actions: tabControllerIndex == 0
+            ? <Widget>[
+                _joined && !_loggedInUser
+                    ? IconButton(
+                        icon: Icon(Icons.chat),
+                        onPressed: _onTapChatUser,
+                      )
+                    : SizedBox(
+                        height: 0.0,
+                        width: 0.0,
                       ),
-                      onPressed: () {
-                        _saveUser();
-                      },
-                    )
-                  : _menuBuilder()
-              : SizedBox(
-                  height: 0.0,
-                  width: 0.0,
-                ),
-        ],
+                _loggedInUser
+                    ? _enabled
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.save,
+                            ),
+                            onPressed: () {
+                              _saveUser();
+                            },
+                          )
+                        : _menuBuilder()
+                    : SizedBox(
+                        height: 0.0,
+                        width: 0.0,
+                      )
+              ]
+            : <Widget>[],
         bottom: _loggedInUser
             ? _tabs()
             : PreferredSize(
@@ -304,30 +321,9 @@ class ProfilePageState extends State<ProfilePage>
                                             image: DecorationImage(
                                               fit: BoxFit.cover,
                                               image: NetworkImage(
-                                                  // 'http://192.168.31.38:4005/getProfileImageNow/12',
-                                                  // _imageNow,
-                                                  'http://54.200.143.85:4200/getProfileImageNow/${widget.userPin}'),
+                                                  'http://oyeyaaroapi.plmlogix.com/getProfileImageNow/${widget.userPin}'),
                                             ),
                                           ),
-                                          // child: CachedNetworkImage(
-                                          //   imageUrl:_imageNow,
-                                          //   placeholder: Padding(
-                                          //     padding: EdgeInsets.all(15),
-                                          //     child: SizedBox(
-                                          //       child: CircularProgressIndicator(
-                                          //           valueColor:
-                                          //               new AlwaysStoppedAnimation<
-                                          //                       Color>(
-                                          //                   Color(
-                                          //                       0xffb00bae3)),
-                                          //           strokeWidth: 1.0),
-                                          //     ),
-                                          //   ),
-                                          //   errorWidget: new Icon(
-                                          //     Icons.error,
-                                          //     color: Colors.white,
-                                          //   ),
-                                          // )
                                         ),
                                         onTap: () => _showImage(_imageNow),
                                       ),
@@ -370,7 +366,8 @@ class ProfilePageState extends State<ProfilePage>
                                                   color: Colors.white,
                                                 ),
                                                 onPressed: () {
-                                                  _getImage();
+                                                  // _getImage();
+                                                  bottomSheet();
                                                 },
                                               ),
                                             )
@@ -382,6 +379,29 @@ class ProfilePageState extends State<ProfilePage>
                                   ),
                                 ),
                               ],
+                            ),
+                            Container(
+                              color: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 5.0),
+                              child: TextFormField(
+                                enabled: false,
+                                controller: _nameController,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                ),
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hasFloatingPlaceholder: true,
+                                  labelText: "Name",
+                                  labelStyle: TextStyle(
+                                    color: Colors.blue[500],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 5.0,
                             ),
                             Container(
                               color: Colors.white,
@@ -443,29 +463,6 @@ class ProfilePageState extends State<ProfilePage>
                                   border: InputBorder.none,
                                   hasFloatingPlaceholder: true,
                                   labelText: "Stream",
-                                  labelStyle: TextStyle(
-                                    color: Colors.blue[500],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 5.0,
-                            ),
-                            Container(
-                              color: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 5.0),
-                              child: TextFormField(
-                                enabled: false,
-                                controller: _nameController,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hasFloatingPlaceholder: true,
-                                  labelText: "Name",
                                   labelStyle: TextStyle(
                                     color: Colors.blue[500],
                                   ),
@@ -581,6 +578,29 @@ class ProfilePageState extends State<ProfilePage>
                               horizontal: 8.0, vertical: 5.0),
                           child: TextFormField(
                             enabled: false,
+                            controller: _nameController,
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hasFloatingPlaceholder: true,
+                              labelText: "Name",
+                              labelStyle: TextStyle(
+                                color: Colors.blue[500],
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 5.0,
+                        ),
+                        Container(
+                          color: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 5.0),
+                          child: TextFormField(
+                            enabled: false,
                             controller: _collegeController,
                             style: TextStyle(
                               color: Colors.black,
@@ -635,29 +655,6 @@ class ProfilePageState extends State<ProfilePage>
                               border: InputBorder.none,
                               hasFloatingPlaceholder: true,
                               labelText: "Stream",
-                              labelStyle: TextStyle(
-                                color: Colors.blue[500],
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 5.0,
-                        ),
-                        Container(
-                          color: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 5.0),
-                          child: TextFormField(
-                            enabled: false,
-                            controller: _nameController,
-                            style: TextStyle(
-                              color: Colors.black,
-                            ),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hasFloatingPlaceholder: true,
-                              labelText: "Name",
                               labelStyle: TextStyle(
                                 color: Colors.blue[500],
                               ),
@@ -862,7 +859,7 @@ class ProfilePageState extends State<ProfilePage>
         _loading = true;
       });
       http.Response response = await http.post(
-          "http://54.200.143.85:4200/getProfile",
+          "http://oyeyaaroapi.plmlogix.com/getProfile",
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"pin": widget.userPin}));
 
@@ -883,8 +880,10 @@ class ProfilePageState extends State<ProfilePage>
           _locationController.text = res['Location'];
           _phoneController.text = res['Mobile'];
 
-          _imageThen = "http://54.200.143.85:4200/profiles" + res['ImageThen'];
-          _imageNow = "http://54.200.143.85:4200/profiles" + res['ImageNow'];
+          _imageThen =
+              "http://oyeyaaroapi.plmlogix.com/profiles" + res['ImageThen'];
+          _imageNow =
+              "http://oyeyaaroapi.plmlogix.com/profiles" + res['ImageNow'];
         });
       }
       setState(() {
@@ -928,7 +927,7 @@ class ProfilePageState extends State<ProfilePage>
           'College': _collegeController.text
         });
 
-        await http.post("http://54.200.143.85:4200/updateProfile",
+        await http.post("http://oyeyaaroapi.plmlogix.com/updateProfile",
             headers: {"Content-Type": "application/json"}, body: body);
         setState(() {
           _loading = false;
@@ -1030,13 +1029,65 @@ class ProfilePageState extends State<ProfilePage>
     }
   }
 
+  _getCamera() async {
+    setState(() {
+      _loading = true;
+    });
+    try {
+      File image = await ImagePicker.pickImage(source: ImageSource.camera);
+      int fileSize = await image.length();
+      print('original img: $image || size : $fileSize');
+
+      //
+      if (image != null) {
+        if ((fileSize / 1024) > 500) {
+          print('compressing image');
+          imageFile = await FlutterNativeImage.compressImage(image.path,
+              percentage: 75, quality: 75);
+          int fileSize = await imageFile.length();
+
+          print('cpmpress img path: $imageFile ||size :$fileSize');
+        } else {
+          print('not compressing image');
+          imageFile = image;
+        }
+
+        _uploadImageFile(imageFile).then((onValue) {
+          imageCache.clear();
+          setState(() {});
+        });
+      } else {
+        setState(() {
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _loading = false;
+      });
+      _key.currentState.showSnackBar(SnackBar(
+        backgroundColor: Colors.red,
+        content: Container(
+          child: Text(
+            "Something went wrong",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ),
+        duration: Duration(seconds: 3),
+      ));
+    }
+  }
+
+
   _uploadImageFile(image) async {
     http.ByteStream stream =
         new http.ByteStream(DelegatingStream.typed(image.openRead()));
 
     var length = await image.length();
 
-    Uri uri = Uri.parse("http://54.200.143.85:4200/uploadProfileImage");
+    Uri uri = Uri.parse("http://oyeyaaroapi.plmlogix.com/uploadProfileImage");
 
     http.MultipartRequest request = new http.MultipartRequest("POST", uri);
     request.headers["pin"] = widget.userPin;
@@ -1080,7 +1131,7 @@ class ProfilePageState extends State<ProfilePage>
       "receiverNumber": _phoneController.text
     });
     http
-        .post("http://54.200.143.85:4200/startChat",
+        .post("http://oyeyaaroapi.plmlogix.com/startChat",
             headers: {"Content-Type": "application/json"}, body: bodyPMsg)
         .then((response) {
       var res = jsonDecode(response.body)["data"][0];
@@ -1216,6 +1267,37 @@ class ProfilePageState extends State<ProfilePage>
               )
             ],
           );
+        });
+  }
+
+  bottomSheet() {
+    print('calleed shareVideo()');
+    showModalBottomSheet(
+        context: context,
+        builder: (builder) {
+          return new Container(
+              height: 150.0, child: Column(children: <Widget>[
+                Padding(padding: EdgeInsets.all(23),
+                child: Text('Profile photo',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    IconButton(
+                      icon:Icon(Icons.photo,size: 50,color:Color(0xffb00bae3)),
+                      onPressed: (){
+                        _getImage();
+                        Navigator.pop(context, 0);
+                      },
+                    ),
+                     IconButton(
+                      icon:Icon(Icons.camera,size: 50,color:Color(0xffb00bae3)),
+                      onPressed: (){
+                        _getCamera();
+                        Navigator.pop(context, 0);
+                      },
+                    )
+                ],)
+              ]));
         });
   }
 }

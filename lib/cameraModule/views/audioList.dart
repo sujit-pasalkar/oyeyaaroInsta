@@ -26,7 +26,6 @@ class _AudioListState extends State<AudioList> {
   bool isCheckDuration = false;
   String loadingMsg = "Loading Songs..";
   String sendUrl = '';
-  String playingSongName = "";
   bool donloadSongLoading = false;
 
   AudioPlayer _audioPlayer;
@@ -87,7 +86,6 @@ class _AudioListState extends State<AudioList> {
       print('audioPlayer error : $msg');
       setState(() {
         _playerState = PlayerState.stopped;
-        playingSongName = '';
         _duration = Duration(seconds: 0);
         _position = Duration(seconds: 0);
       });
@@ -97,7 +95,6 @@ class _AudioListState extends State<AudioList> {
   void onComplete() {
     setState(() {
       _playerState = PlayerState.stopped;
-      playingSongName = '';
       isPlaying = false;
     });
     // playNext();
@@ -113,9 +110,7 @@ class _AudioListState extends State<AudioList> {
         ),
         body: donloadSongLoading
             ? Center(
-                child: CircularProgressIndicator(
-                    valueColor:
-                        new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3))),
+                child: CircularProgressIndicator(),
               )
             : Stack(
                 children: <Widget>[
@@ -162,10 +157,7 @@ class _AudioListState extends State<AudioList> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
-                                    CircularProgressIndicator(
-                                        valueColor:
-                                            new AlwaysStoppedAnimation<Color>(
-                                                Color(0xffb00bae3))),
+                                    CircularProgressIndicator(),
                                     Padding(
                                       padding: EdgeInsets.only(top: 20),
                                     ),
@@ -179,49 +171,48 @@ class _AudioListState extends State<AudioList> {
                                   return Column(
                                     children: <Widget>[
                                       ListTile(
-                                        leading: isPlaying && searchresult[index] ==
-                                                  playingSongName//curr_id == index
+                                        leading: isPlaying && curr_id == index
                                             ? _position != null &&
                                                     _duration != null
                                                 ? IconButton(
                                                     icon: Icon(Icons
                                                         .pause_circle_outline),
-                                                    iconSize: 45.0,
-                                                    color: Color(0xffb00bae3),
+                                                    iconSize: 40.0,
+                                                    color: Colors.black,
                                                     onPressed: () {
                                                       _stop();
                                                     },
                                                   )
-                                                : CircularProgressIndicator(
-                                                    valueColor:
-                                                        new AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            Color(0xffb00bae3)))
+                                                : CircularProgressIndicator()
                                             : IconButton(
                                                 icon: Icon(
                                                     Icons.play_circle_outline),
-                                                iconSize: 45.0,
+                                                iconSize: 40.0,
                                                 color: Colors.black,
                                                 onPressed: () {
                                                   if (_position == null &&
                                                       _duration == null) {
                                                     _stop().then((res) {
-                                                      print(
-                                                          'after stopped.. : ${res}');
+                                                      print('after stopped.. : ${res}');
                                                       _play(
-                                                          'http://54.200.143.85:4200/Audio/' +
+                                                          'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                               searchresult[
                                                                       index]
                                                                   .toString(),
-                                                          index,searchresult[index]);
+                                                          index);
                                                     });
                                                   } else {
                                                     _play(
-                                                        'http://54.200.143.85:4200/Audio/' +
+                                                        'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                             searchresult[index]
                                                                 .toString(),
-                                                        index,searchresult[index]);
+                                                        index);
                                                   }
+                                                  // _play(
+                                                  //     'http://oyeyaaroapi.plmlogix.com/Audio/' +
+                                                  //         searchresult[index]
+                                                  //             .toString(),
+                                                  //     index);
                                                 },
                                               ),
                                         title: Text(
@@ -237,12 +228,13 @@ class _AudioListState extends State<AudioList> {
                                             icon: new Image.asset(
                                                 "assets/video_call_inactive.png"),
                                             iconSize: 25.0,
+                                            // color: Colors.black,
                                             onPressed: () {
                                               Fluttertoast.showToast(
                                                 msg: "Downloading...",
                                               );
                                               checkDuration(
-                                                  'http://54.200.143.85:4200/Audio/' +
+                                                  'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                       searchresult[index]
                                                           .toString(),
                                                   index);
@@ -261,7 +253,7 @@ class _AudioListState extends State<AudioList> {
 
   getSongs() async {
     var response = await http.post(
-      "http://54.200.143.85:4200/getAudioList",
+      "http://oyeyaaroapi.plmlogix.com/getAudioList",
       headers: {"Content-Type": "application/json"},
     );
     var res = jsonDecode(response.body);
@@ -285,12 +277,12 @@ class _AudioListState extends State<AudioList> {
         isCheckDuration = true;
       });
     } else {
-      print('error is : $_duration');
+      print('error is : ${_duration}');
     }
   }
 
   // Future<int>
-  _play(url, idx,songnm) async {
+  _play(url, idx) async {
     print("play url----------------------: ${url} && index : ${idx}");
     final playPosition = (_position != null &&
             _duration != null &&
@@ -312,7 +304,6 @@ class _AudioListState extends State<AudioList> {
         isPlaying = true;
         _playerState = PlayerState.playing;
         curr_id = idx;
-        playingSongName = songnm;
       });
     } else {
       print('play failed .. result : ${result}');
@@ -327,7 +318,6 @@ class _AudioListState extends State<AudioList> {
         isPlaying = false;
         _playerState = PlayerState.stopped;
         _position = new Duration();
-        playingSongName = '';
       });
     }
     return result;
@@ -338,13 +328,13 @@ class _AudioListState extends State<AudioList> {
     print('duration------- ${_duration}');
 
     applicationDir = (await getApplicationDocumentsDirectory()).path;
-    String songnm = url.replaceAll('http://54.200.143.85:4200/Audio/', '');
+    String songnm = url.replaceAll('http://oyeyaaroapi.plmlogix.com/Audio/', '');
     String dir = '$applicationDir${Config.musicDownloadFolderPath}';
     print('getApplicationDocumentsDirectory :  ${dir}');
     String trimmedsongname = songnm.replaceAll(new RegExp(r"\s+\b|\b\s"), "");
     File file = new File('$dir/$trimmedsongname');
     if (file.existsSync()) {
-      print('duration------- check');
+        print('duration------- check');
       var returnObject = [];
       returnObject.add(file.path);
       returnObject.add(_duration);

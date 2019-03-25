@@ -4,6 +4,7 @@ import 'dart:io';
 import 'feed/feeds.dart';
 import 'HomePage/pages/Network/network_screen.dart';
 import 'HomePage/pages/recording/recordings.dart';
+import 'HomePage/pages/recording/video.dart';
 import 'HomePage/pages/Chats/chat_screen.dart';
 import 'HomePage/pages/Groups/groups_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -119,7 +120,8 @@ class _HomePageState extends State<HomePage> {
         break;
         
       case 2:
-        return RecordingScreen(
+        return //RecordingScreen
+        VedioRecordingScreen(
           hideButtonController: hideButtonController,
           key: recordingsKey,
         );

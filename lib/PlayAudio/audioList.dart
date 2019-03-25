@@ -123,7 +123,7 @@ class _AudioListState extends State<AudioList> {
                                       color: Colors.black,
                                       onPressed: () {
                                         _play(
-                                            'http://54.200.143.85:4200/Audio/' +
+                                            'http://oyeyaaroapi.plmlogix.com/Audio/' +
                                                 snapshot.data[index].toString(),
                                             index);
                                       },
@@ -140,7 +140,7 @@ class _AudioListState extends State<AudioList> {
                                 iconSize: 35.0,
                                 color: Colors.black,
                                 onPressed: () {
-                                  download('http://54.200.143.85:4200/Audio/' +
+                                  download('http://oyeyaaroapi.plmlogix.com/Audio/' +
                                       snapshot.data[index].toString());
                                 },
                               )),
@@ -160,7 +160,7 @@ class _AudioListState extends State<AudioList> {
 
   Future<List<dynamic>> getSongs() async {
     var response = await http.post(
-      "http://54.200.143.85:4200/getAudioList",
+      "http://oyeyaaroapi.plmlogix.com/getAudioList",
       headers: {"Content-Type": "application/json"},
     );
     var res = jsonDecode(response.body);
@@ -216,8 +216,8 @@ class _AudioListState extends State<AudioList> {
   Future<dynamic> download(String url) async {
     String nm = url.replaceAll('.mp3', '');
     print("song name is : " +
-        nm.replaceAll('http://54.200.143.85:4200/Audio/', ''));
-    String songnm = nm.replaceAll('http://54.200.143.85:4200/Audio/', '');
+        nm.replaceAll('http://oyeyaaroapi.plmlogix.com/Audio/', ''));
+    String songnm = nm.replaceAll('http://oyeyaaroapi.plmlogix.com/Audio/', '');
     String dir = (await getApplicationDocumentsDirectory()).path;
     print('getApplicationDocumentsDirectory :  ${dir}');
 

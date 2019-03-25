@@ -117,7 +117,7 @@ class _UserFeedsState extends State<UserFeeds>
   getFeed() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String userId = currentUser.userId;
-    String url = 'http://54.200.143.85:4200/getUserFeeds?userId=' + userId;
+    String url = 'http://oyeyaaroapi.plmlogix.com/getUserFeeds?userId=' + userId;
     HttpClient httpClient = new HttpClient();
 
     List<UserFeedBuilder> listOfPosts;

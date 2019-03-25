@@ -10,6 +10,10 @@ import '../../../HomePage/ChatPage/playVideo.dart';
 import '../../../models/group_model.dart';
 import 'package:http/http.dart' as http;
 import '../../../cameraModule/views/recordClip.dart';
+import '../../../ProfilePage/profile.dart';
+import '../../../models/user.dart';
+import '../../../models/data-service.dart';
+import 'package:thumbnails/thumbnails.dart';
 
 class VedioRecordingScreen extends StatefulWidget {
   final ScrollController hideButtonController;
@@ -37,10 +41,12 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
   //share video to group
   List<String> selectedIndexes = [];
   List<String> allVideos = [];
+  bool loading;
 
   @override
   void initState() {
     super.initState();
+    loading = false;
     directory = new Directory('/storage/emulated/0/OyeYaaro/Videos');
     readLocal();
   }
@@ -80,40 +86,16 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
     return new Scaffold(
       key: _scaffoldKey,
       appBar: this.selectedIndexes.length == 0
-          ? null
-          : AppBar(
-              title: Text("Oye Yaaro"),
+          ? AppBar(
+              backgroundColor: Color(0xffb00bae3),
+              title: Text('Record Video'),
               actions: <Widget>[
-                selectedIndexes.length > 0 &&
-                        selectedIndexes.length < allVideos.length
-                    ? IconButton(
-                        icon: Icon(Icons.radio_button_unchecked),
-                        onPressed: () {
-                          print('check all videos : ${allVideos.length}');
-                          setState(() {
-                            selectedIndexes = [];
-                            for (var i = 0; i < allVideos.length; i++) {
-                              selectedIndexes.add(allVideos[i]);
-                               showShareVideoCheckBox[i] = true;
-                            }
-                          });
-                        },
-                      )
-                    : IconButton(
-                        icon: Icon(Icons.check_circle),
-                        onPressed: () {
-                          print(
-                              'uncheck all videos: ${showShareVideoCheckBox.length} ,${allVideos.length}');
-                          for (var i = 0;
-                              i < this.showShareVideoCheckBox.length;
-                              i++) {
-                            this.showShareVideoCheckBox[i] = false;
-                          }
-                          setState(() {
-                            this.selectedIndexes.clear();
-                          });
-                        },
-                      ),
+                  _menuBuilder1(),
+                ])
+          : AppBar(
+              backgroundColor: Color(0xffb00bae3),
+              title: Text("Record Video"),
+              actions: <Widget>[
                 IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () {
@@ -133,30 +115,80 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                           share();
                         },
                       )
-                    : Text('')
+                    : SizedBox(height: 0, width: 0),
+                selectedIndexes.length > 0 &&
+                        selectedIndexes.length < allVideos.length
+                    ? FlatButton(
+                        child: Text(
+                          'Check All',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        // icon: Icon(Icons.radio_button_unchecked),
+                        onPressed: () {
+                          print('check all videos : ${allVideos.length}');
+                          setState(() {
+                            selectedIndexes = [];
+                            for (var i = 0; i < allVideos.length; i++) {
+                              selectedIndexes.add(allVideos[i]);
+                              showShareVideoCheckBox[i] = true;
+                            }
+                          });
+                        },
+                      )
+                    : FlatButton(
+                        child: Text(
+                          'Clear All',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () {
+                          print(
+                              'uncheck all videos: ${showShareVideoCheckBox.length} ,${allVideos.length}');
+                          for (var i = 0;
+                              i < this.showShareVideoCheckBox.length;
+                              i++) {
+                            this.showShareVideoCheckBox[i] = false;
+                          }
+                          setState(() {
+                            this.selectedIndexes.clear();
+                          });
+                        },
+                      ),
               ],
-              backgroundColor: Color(0xffb00bae3),
             ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Expanded(
-            child: new FutureBuilder<List<String>>(
-              future: listDir(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.hasError)
-                  return Text("Error => ${snapshot.error}");
-                return snapshot.hasData
-                    ? body(snapshot.data)
-                    : Center(child: CircularProgressIndicator(
-                      valueColor: new AlwaysStoppedAnimation<Color>(
-                                                  Color(0xffb00bae3)),
-                    ));
-              },
-            ),
-          ),
-        ],
-      ),
+      body: !loading
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                Expanded(
+                  child: new FutureBuilder<List<String>>(
+                    future: listDir(),
+                    builder: (context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasError)
+                        return Text("Error => ${snapshot.error}");
+                      return snapshot.hasData
+                          ? body(snapshot.data)
+                          : Center(
+                              child: CircularProgressIndicator(
+                              valueColor: new AlwaysStoppedAnimation<Color>(
+                                  Color(0xffb00bae3)),
+                            ));
+                    },
+                  ),
+                ),
+              ],
+            )
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                CircularProgressIndicator(
+                  valueColor:
+                      new AlwaysStoppedAnimation<Color>(Color(0xffb00bae3)),
+                ),
+                SizedBox(height: 10,),
+                Text('Sending..',style: TextStyle(fontSize: 20 ,color:Color(0xffb00bae3)),)
+              ],
+            )),
       floatingActionButton: new FloatingActionButton(
         backgroundColor: Color(0xffb00bae3),
         child: Image(
@@ -171,6 +203,47 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
         },
       ),
     );
+  }
+
+  Widget _menuBuilder1() {
+    return PopupMenuButton<String>(
+      icon: Icon(
+        Icons.more_vert,
+        color: Colors.white,
+      ),
+      tooltip: "Menu",
+      onSelected: _onMenuItemSelect,
+      itemBuilder: (BuildContext context) => [
+            PopupMenuItem<String>(
+              value: 'Profile',
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 5.0),
+                child: Row(
+                  children: <Widget>[
+                    Text("Profile"),
+                    Spacer(),
+                    Icon(Icons.person),
+                  ],
+                ),
+              ),
+            ),
+          ],
+    );
+  }
+
+  _onMenuItemSelect(String option) {
+    switch (option) {
+      case 'Profile':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(
+                  userPin: currentUser.userId,
+                ),
+          ),
+        );
+        break;
+    }
   }
 
   share() async {
@@ -268,8 +341,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          PlayScreen(url: dataList[i], type: 'file'),
+                      builder: (context) => PlayScreen(url: dataList[i]),
                     ),
                   );
                 }
@@ -402,10 +474,13 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                       return snapshot.hasData
                           ? Expanded(
                               child: groupListView(
-                              snapshot.data, /* video, i */
+                              snapshot.data, 
                             ))
-                          : Center(child: CircularProgressIndicator( valueColor: new AlwaysStoppedAnimation<Color>(
-                                                  Color(0xffb00bae3)),));
+                          : Center(
+                              child: CircularProgressIndicator(
+                              valueColor: new AlwaysStoppedAnimation<Color>(
+                                  Color(0xffb00bae3)),
+                            ));
                     },
                   )
                 ],
@@ -465,79 +540,112 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
     context,
     position,
   ) async {
-    //show loading true
     Navigator.pop(context);
-    setState(() {});
-    final snackBar = SnackBar(
-      content: Text('Sending..'),
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar); //not work
+    setState(() {
+      loading = true;
+    });
+    try {
+      for (var video in this.selectedIndexes) {
+        print('-----------------started......................');
 
-    for (var video in this.selectedIndexes) {
-      print('-----------------started......................');
-      var result = await http.get('http://54.200.143.85:4200/time');
-      var res = jsonDecode(result.body);
-      print('TimeStamp got:-----${res['timestamp']}');
-      var timestamp = res['timestamp'];
-      print('TimeStamp set:-----$timestamp');
+        http.Response responseTime =
+            await http.get('http://oyeyaaroapi.plmlogix.com/time');
+        var timestamp = jsonDecode(responseTime.body)['timestamp'];
+        print('TimeStamp set:-----$timestamp');
 
-      videoFile = new File(video);
+        videoFile = new File(video);
 
-      var stream =
-          new http.ByteStream(DelegatingStream.typed(videoFile.openRead()));
-      var length = await videoFile.length();
-      var uri = Uri.parse("http://54.200.143.85:4200/uploadVideo");
-      var request = new http.MultipartRequest("POST", uri);
+        // var stream =
+        //     new http.ByteStream(DelegatingStream.typed(videoFile.openRead()));
+        // var length = await videoFile.length();
+        // var uri = Uri.parse("http://oyeyaaroapi.plmlogix.com/uploadVideo");
+        // var request = new http.MultipartRequest("POST", uri);
+        // request.headers["time"] = timestamp;
+        // request.headers["dialogId"] = groupList[position].ids;
+        // request.headers["senderId"] = this.myId;
+        // request.headers["type"] = "group";
+        // var multipartFile =
+        //     new http.MultipartFile('file', stream, length, filename: "Heloo");
+        // print(
+        //     '${stream}..${length}..${uri}..${request}..${timestamp}..${groupList[position].ids}');
+        // request.files.add(multipartFile);
+        // // send
+        // var response = await request.send();
+        // // print(response.statusCode);
+        // response.stream.transform(utf8.decoder).listen((value) {
+        //   print('video uploaded seccuss..');
+        //   print(value);
+        // });
 
-      request.headers["time"] = timestamp;
-      request.headers["dialogId"] = groupList[position].ids;
-      request.headers["senderId"] = this.myId;
-      request.headers["type"] = "group";
+        //s3
+        String mediaUrl = await dataService.uploadFileToS3(videoFile,
+            'videos/${this.groupList[position].ids}/' + timestamp, '.mp4');
+        print('Uploaded to s3 url:$mediaUrl');
 
-      var multipartFile =
-          new http.MultipartFile('file', stream, length, filename: "Heloo");
-      print(
-          '${stream}..${length}..${uri}..${request}..${timestamp}..${groupList[position].ids}');
-      request.files.add(multipartFile);
-      // send
-      var response = await request.send();
-      // print(response.statusCode);
-      response.stream.transform(utf8.decoder).listen((value) {
-        print('video uploaded seccuss..');
-        print(value);
+        //video thumb  s3
+        String thumb = await Thumbnails.getThumbnail(
+            thumbnailFolder: '/storage/emulated/0/OyeYaaro/.thumbnails',
+            videoFile: videoFile.path,
+            imageType: ThumbFormat.PNG,
+            quality: 30);
+        print('video thumbnail created');
+
+        String thumbUrl = await dataService.uploadFileToS3(File(thumb),
+            'videos/${this.groupList[position].ids}/' + timestamp, ".jpeg");
+        print('video thumbnail uploaded to s3: $thumbUrl');
+        print("uploaded video mediaUrl: " + mediaUrl);
+        print("uploaded video thumbUrl: " + thumbUrl);
+
+        //call service
+        http.Response response =
+            await http.post("http://oyeyaaroapi.plmlogix.com/uploadVideos",
+                headers: {"Content-Type": "application/json"},
+                body: jsonEncode({
+                  "timestamp": timestamp,
+                  "dialogId": this.groupList[position].ids,
+                  "senderId": this.myId,
+                  "type": "group"
+                }));
+        print('uploadVideo service  res : $response');
+
+        print('----->>>>>${this.groupList[position].ids}');
+        var documentReference = Firestore.instance
+            .collection('groups')
+            .document(this.groupList[position].ids)
+            .collection(this.groupList[position].ids)
+            .document(timestamp);
+
+        Firestore.instance.runTransaction((transaction) async {
+          await transaction.set(
+            documentReference,
+            {
+              'senderId': this.myId,
+              'idTo': this.groupList[position].ids,
+              'timestamp': timestamp,
+              'msg': mediaUrl,
+              'type': 2,
+              'members': [], //groupMembers,//err
+              'senderName': this.myName,
+              'groupName': this.groupList[position].name,
+              'thumbnail': thumbUrl
+            },
+          );
+        }).then((onValue) {
+          print('sent to firebase');
+          setState(() {
+            loading = false;
+          });
+        });
+      }
+    } catch (e) {
+      setState(() {
+        loading = false;
       });
-//
-      print(
-          '-------------------------------->>>>>${this.groupList[position].ids}');
-      var documentReference = Firestore.instance
-          .collection('groups')
-          .document(this.groupList[position].ids)
-          .collection(this.groupList[position].ids)
-          .document(timestamp);
-
-      Firestore.instance.runTransaction((transaction) async {
-        await transaction.set(
-          documentReference,
-          {
-            'senderId': this.myId,
-            'idTo': this.groupList[position].ids,
-            'timestamp': timestamp,
-            'msg':
-                "http://54.200.143.85:4200/Media/Videos/${groupList[position].ids}/${timestamp}.mp4",
-            'type': 2,
-            'members': '', //groupMembers,//err
-            'senderName': this.myName,
-            'groupName': this.groupList[position].name,
-            'thumbnail': "http://54.200.143.85:4200/Media/Frames/" +
-                this.groupList[position].ids +
-                "/" +
-                timestamp +
-                "_1.jpg"
-          },
-        );
-      }).then((onValue) {
-        print('sent to firebase');
-      });
+      final snackBar = SnackBar(
+        content: Text('Something went wrong..'),
+        backgroundColor: Colors.red,
+      );
+      _scaffoldKey.currentState.showSnackBar(snackBar);
     }
 
     print('---------All videos sent------------');
@@ -546,7 +654,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
     }
 
     setState(() {
-      this.selectedIndexes.clear();// = [];
+      this.selectedIndexes.clear();
       print('after rm : $selectedIndexes');
     });
   }
@@ -554,7 +662,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
   getGroupsMember(peerId) async {
     try {
       http.Response response = await http.post(
-          "http://54.200.143.85:4200/getJoinedArray",
+          "http://oyeyaaroapi.plmlogix.com/getJoinedArray",
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"dialog_id": '${peerId}'}));
       var groupMembers = jsonDecode(response.body);

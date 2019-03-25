@@ -12,7 +12,8 @@ import '../const.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../groupInfoTabsPage.dart';
-import '../playVideo.dart';
+// import '../playVideo.dart';
+import '../../../feed/playVideo.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../feed/image_view.dart';
 import 'package:flutter/services.dart';
@@ -147,7 +148,6 @@ class ChatScreenState extends State<Chat> {
 
   bool textSending = false;
 
-
   String searchText = "";
   AudioPlayer audioPlayer;
   PlayerState playerState = PlayerState.stopped;
@@ -177,7 +177,7 @@ class ChatScreenState extends State<Chat> {
     _songList2 = List();
 
     http.post(
-      "http://54.200.143.85:4200/getAudioListForChat",
+      "http://oyeyaaroapi.plmlogix.com/getAudioListForChat",
       headers: {"Content-Type": "application/json"},
     ).then((response) {
       var res = jsonDecode(response.body);
@@ -185,7 +185,7 @@ class ChatScreenState extends State<Chat> {
     });
 
     http.post(
-      "http://54.200.143.85:4200/getAudioList",
+      "http://oyeyaaroapi.plmlogix.com/getAudioList",
       headers: {"Content-Type": "application/json"},
     ).then((response) {
       var res = jsonDecode(response.body);
@@ -209,6 +209,7 @@ class ChatScreenState extends State<Chat> {
               title: GestureDetector(
                 child: Text(this.name),
                 onTap: () {
+                  audioPlayer.stop();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -409,15 +410,19 @@ class ChatScreenState extends State<Chat> {
         }
         break;
       case 'Albums':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NetworkScreen(
-                  hideButtonController: hideButtonController,
-                  dialogId: widget.peerId,
-                ),
-          ),
-        );
+        {
+          audioPlayer.stop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NetworkScreen(
+                    hideButtonController: hideButtonController,
+                    dialogId: widget.peerId,
+                  ),
+            ),
+          );
+        }
+
         break;
     }
   }
@@ -427,7 +432,7 @@ class ChatScreenState extends State<Chat> {
     String userPin = prefs.getString('userPin');
 
     http.Response response = await http.post(
-        "http://54.200.143.85:4200/deleteGroup",
+        "http://oyeyaaroapi.plmlogix.com/deleteGroup",
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"dialog_id": peerId, "user_pin": userPin}));
     var res = jsonDecode(response.body);
@@ -552,7 +557,7 @@ class ChatScreenState extends State<Chat> {
   getGroupsMember() async {
     try {
       http.Response response = await http.post(
-          "http://54.200.143.85:4200/getJoinedArray",
+          "http://oyeyaaroapi.plmlogix.com/getJoinedArray",
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"dialog_id": '${widget.peerId}'}));
       var groupMembers = jsonDecode(response.body);
@@ -642,24 +647,53 @@ class ChatScreenState extends State<Chat> {
         isLoading = true;
       });
       print('in get camera video');
+
       var originalVideoUrl =
-          await ImagePicker.pickVideo(source: ImageSource.camera);
-      int fileSize = await originalVideoUrl.length();
-      print(
-          "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
-      CommonFunctions cmf = new CommonFunctions();
-      cmf.compressVideo(originalVideoUrl.path).then((value) async {
-        imageFile = new File(value);
-        int fileSize = await imageFile.length();
-        print("Compressed vedio file size: " +
+          await ImagePicker.pickVideo(source: ImageSource.camera)
+              .then((onValue) {
+        return onValue;
+      }).catchError((onError) {
+        return null;
+      });
+      if (originalVideoUrl != null) {
+        print('originalVideoUrl :  $originalVideoUrl');
+        var fileSize = await originalVideoUrl.length();
+        print("Original vedio file size: " +
             (fileSize / 1024).toString() +
             " KB");
-        if (imageFile != null) {
-          uploadVideoFile(imageFile);
+        if ((fileSize / 1024) <= 10000) {
+          CommonFunctions cmf = new CommonFunctions();
+          cmf.compressVideo(originalVideoUrl.path).then((value) async {
+            File imageFile = new File(value);
+            fileSize = await imageFile.length();
+            print("Compressed vedio file size: " +
+                (fileSize / 1024).toString() +
+                " KB");
+
+            http.Response responseTime =
+                await http.get('http://oyeyaaroapi.plmlogix.com/time');
+            timestamp = jsonDecode(responseTime.body)['timestamp'];
+            print('Got timestamp : $timestamp');
+            uploadVideoFile(imageFile, timestamp);
+          }).catchError((error) {
+            print('Error Compressing: $error');
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(msg: 'Unable to upload this file');
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          Fluttertoast.showToast(msg: 'Oops video size is greater than 10MB!');
         }
-      }).catchError((error) {
-        print('Error Compressing: $error');
-      });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        Fluttertoast.showToast(msg: 'video not selected.');
+      }
     } catch (e) {
       print('error while opening: $e');
       setState(() {
@@ -676,23 +710,88 @@ class ChatScreenState extends State<Chat> {
       });
 
       var originalVideoUrl =
-          await ImagePicker.pickVideo(source: ImageSource.gallery);
-      int fileSize = await originalVideoUrl.length();
-      print("Original vedio file size: " + (fileSize / 1024).toString() + " KB");
-
-      CommonFunctions cmf = new CommonFunctions();
-      cmf.compressVideo(originalVideoUrl.path).then((value) async {
-        imageFile = new File(value);
-        int fileSize = await imageFile.length();
-        print("Compressed vedio file size: " +
+          await ImagePicker.pickVideo(source: ImageSource.gallery)
+              .then((onValue) {
+        return onValue;
+      }).catchError((onError) {
+        return null;
+      });
+      if (originalVideoUrl != null) {
+        print('originalVideoUrl :  $originalVideoUrl');
+        var fileSize = await originalVideoUrl.length();
+        print("Original vedio file size: " +
             (fileSize / 1024).toString() +
             " KB");
-        if (imageFile != null) {
-          uploadVideoFile(imageFile,);
+
+        if ((fileSize / 1024) <= 10000) {
+          CommonFunctions cmf = new CommonFunctions();
+          cmf.compressVideo(originalVideoUrl.path).then((value) async {
+            File imageFile = new File(value);
+            fileSize = await imageFile.length();
+            print("Compressed vedio file size: " +
+                (fileSize / 1024).toString() +
+                " KB");
+
+            if ((fileSize / 1024) <= 10000) {
+              http.Response responseTime =
+                  await http.get('http://oyeyaaroapi.plmlogix.com/time');
+              timestamp = jsonDecode(responseTime.body)['timestamp'];
+              print('Got timestamp : $timestamp');
+              uploadVideoFile(imageFile, timestamp);
+            } else {
+              setState(() {
+                isLoading = false;
+              });
+              Fluttertoast.showToast(msg: 'Video size too large!');
+            }
+          }).catchError((error) {
+            print('Error Compressing: $error');
+            setState(() {
+              isLoading = false;
+            });
+            Fluttertoast.showToast(msg: 'Unable to upload this file');
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          Fluttertoast.showToast(msg: 'Oops video size is greater than 10MB!');
         }
-      }).catchError((error) {
-        print('Error Compressing: $error');
-      });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        Fluttertoast.showToast(msg: 'video not selected.');
+      }
+
+      // var originalVideoUrl =
+      //     await ImagePicker.pickVideo(source: ImageSource.gallery);
+      // int fileSize = await originalVideoUrl.length();
+      // print(
+      //     "Original vedio file size: " + (fileSize / 1024).toString() + " KB");
+
+      // CommonFunctions cmf = new CommonFunctions();
+      // cmf.compressVideo(originalVideoUrl.path).then((value) async {
+      //   imageFile = new File(value);
+      //   int fileSize = await imageFile.length();
+      //   print("Compressed vedio file size: " +
+      //       (fileSize / 1024).toString() +
+      //       " KB");
+      //   if (imageFile != null) {
+      //     http.Response responseTime =
+      //         await http.get('http://oyeyaaroapi.plmlogix.com/time');
+      //     timestamp = jsonDecode(responseTime.body)['timestamp'];
+      //     print('Got timestamp : $timestamp');
+      //     uploadVideoFile(imageFile, timestamp);
+      //   }
+      // }).catchError((error) {
+      //   print('Error Compressing: $error');
+      //   setState(() {
+      //     isLoading = false;
+      //   });
+      //   Fluttertoast.showToast(msg: 'Unable to upload this file');
+      // });
+
     } catch (e) {
       print('error while opening: $e');
       setState(() {
@@ -701,34 +800,12 @@ class ChatScreenState extends State<Chat> {
     }
   }
 
-  // Future<String> _compressVideo(String originalVideoUrl) async {
-  //   print('in compress vedio');
-  //   var compressedVideoUrl;
-  //   var platform = const MethodChannel("plmlogix.recordvideo/info");
-
-  //   var data = <String, dynamic>{
-  //     'originalVideoUrl': originalVideoUrl,
-  //   };
-
-  //   try {
-  //     compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
-  //   } catch (e) {
-  //     print('error while compressing:$e');
-  //   }
-  //   return compressedVideoUrl;
-  // }
-
-  Future uploadVideoFile(imageFile) async {
+  Future uploadVideoFile(imageFile, timestamp) async {
     try {
       print('VideoFILE **: $imageFile');
       setState(() {
         this.isLoading = true;
       });
-
-      http.Response responseTime =
-          await http.get('http://54.200.143.85:4200/time');
-      timestamp = jsonDecode(responseTime.body)['timestamp'];
-      print('get timestamp res :  $timestamp');
 
       //s3
       String mediaUrl = await dataService.uploadFileToS3(
@@ -741,18 +818,18 @@ class ChatScreenState extends State<Chat> {
           videoFile: imageFile.path,
           imageType: ThumbFormat.PNG,
           quality: 30);
-          print('video thumbnail created');
+      print('video thumbnail created');
 
       String thumbUrl = await dataService.uploadFileToS3(
           File(thumb), 'videos/${widget.peerId}/' + timestamp, ".jpeg");
-          print('video thumbnail uploaded to s3: $thumbUrl');
+      print('video thumbnail uploaded to s3: $thumbUrl');
 
       print("uploaded video mediaUrl: " + mediaUrl);
       print("uploaded video thumbUrl: " + thumbUrl);
 
       //call service
       http.Response response =
-          await http.post("http://54.200.143.85:4200/uploadVideos",
+          await http.post("http://oyeyaaroapi.plmlogix.com/uploadVideos",
               headers: {"Content-Type": "application/json"},
               body: jsonEncode({
                 "timestamp": timestamp,
@@ -760,16 +837,10 @@ class ChatScreenState extends State<Chat> {
                 "senderId": this.myId,
                 "type": "group"
               }));
-
       print('uploadVideo service  res : $response');
 
       setState(() {
-        // print('$imageUrl');
-        onSendMessage(
-            mediaUrl,
-            2,
-            timestamp,
-            thumbUrl);
+        onSendMessage(mediaUrl, 2, timestamp, thumbUrl);
       });
     } catch (e) {
       print('err while uploading : ${e}');
@@ -786,7 +857,7 @@ class ChatScreenState extends State<Chat> {
         this.isLoading = true;
       });
       http.Response responseTime =
-          await http.get('http://54.200.143.85:4200/time');
+          await http.get('http://oyeyaaroapi.plmlogix.com/time');
       timestamp = jsonDecode(responseTime.body)['timestamp'];
 
       String mediaUrl = await dataService.uploadFileToS3(imageFile,
@@ -795,7 +866,7 @@ class ChatScreenState extends State<Chat> {
 
       //call service
       http.Response response =
-          await http.post("http://54.200.143.85:4200/uploadImages",
+          await http.post("http://oyeyaaroapi.plmlogix.com/uploadImages",
               headers: {"Content-Type": "application/json"},
               body: jsonEncode({
                 "timestamp": timestamp,
@@ -818,10 +889,10 @@ class ChatScreenState extends State<Chat> {
   }
 
   void onTextMessage(String content, int type) async {
-     setState((){
-        textSending = true;
-      });
-    var result = await http.get('http://54.200.143.85:4200/time');
+    setState(() {
+      textSending = true;
+    });
+    var result = await http.get('http://oyeyaaroapi.plmlogix.com/time');
     var res = jsonDecode(result.body);
     timestamp = res['timestamp'];
 
@@ -848,15 +919,15 @@ class ChatScreenState extends State<Chat> {
         );
       }).then((onValue) {
         print('$content sent');
-        setState((){
-        textSending = false;
-      });
+        setState(() {
+          textSending = false;
+        });
       });
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
       Fluttertoast.showToast(msg: 'Nothing to send');
-      setState((){
+      setState(() {
         textSending = false;
       });
     }
@@ -941,8 +1012,8 @@ class ChatScreenState extends State<Chat> {
         children: <Widget>[
           Row(
             children: <Widget>[
+              // Text
               document['type'] == 0
-                  // Text
                   ? GestureDetector(
                       onLongPress: () {
                         adddeleteMsgIdx(index, document['timestamp'], 0);
@@ -995,427 +1066,395 @@ class ChatScreenState extends State<Chat> {
                         ),
                       ),
                     )
-                  : document['type'] == 1 && this.type == 10
-                      // Image
-                      ? GestureDetector(
-                          onLongPress: () {
-                            adddeleteMsgIdx(index, document['timestamp'], 1);
-                          },
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ImageViewer(
-                                      imageUrl: document['msg'],
-                                    ),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            child: new Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: Text(document['senderName'],
-                                          overflow: TextOverflow.ellipsis,
-                                          style: new TextStyle(
-                                              fontSize: 12.0,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold)),
-                                    ),
-                                    Text(
-                                      DateFormat('dd MMM kk:mm').format(
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                              int.parse(document['timestamp']) *
-                                                  1000)),
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 12.0,
-                                          fontStyle: FontStyle.italic),
-                                    ),
-                                  ],
+                  : SizedBox(height: 0, width: 0),
+
+              document['type'] == 1 && this.type == 10
+                  // Image
+                  ? GestureDetector(
+                      onLongPress: () {
+                        adddeleteMsgIdx(index, document['timestamp'], 1);
+                      },
+                      onTap: () {
+                        audioPlayer.stop();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ImageViewer(
+                                  imageUrl: document['msg'],
                                 ),
-                                Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 5.0)),
-                                Material(
-                                  child: CachedNetworkImage(
-                                    placeholder: Container(
-                                      child: CircularProgressIndicator(
-                                          valueColor:
-                                              new AlwaysStoppedAnimation<Color>(
-                                                  Color(0xffb00bae3))),
-                                      padding: EdgeInsets.all(70.0),
-                                      decoration: BoxDecoration(
-                                        color: greyColor2,
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(8.0),
-                                        ),
-                                      ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        child: new Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(document['senderName'],
+                                      overflow: TextOverflow.ellipsis,
+                                      style: new TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                Text(
+                                  DateFormat('dd MMM kk:mm').format(
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                          int.parse(document['timestamp']) *
+                                              1000)),
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12.0,
+                                      fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 5.0)),
+                            Material(
+                              child: CachedNetworkImage(
+                                placeholder: Container(
+                                  child: CircularProgressIndicator(
+                                      valueColor:
+                                          new AlwaysStoppedAnimation<Color>(
+                                              Color(0xffb00bae3))),
+                                  padding: EdgeInsets.all(70.0),
+                                  decoration: BoxDecoration(
+                                    color: greyColor2,
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8.0),
                                     ),
-                                    errorWidget: Material(
-                                      child: Image.asset(
-                                        'images/no_img.png',
-                                        width: 200.0,
-                                        height: 200.0,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(8.0),
-                                      ),
-                                      clipBehavior: Clip.hardEdge,
-                                    ),
-                                    imageUrl: document['msg'],
+                                  ),
+                                ),
+                                errorWidget: Material(
+                                  child: Image.asset(
+                                    'images/no_img.png',
                                     width: 200.0,
                                     height: 200.0,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8.0)),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8.0),
+                                  ),
                                   clipBehavior: Clip.hardEdge,
+                                ),
+                                imageUrl: document['msg'],
+                                width: 200.0,
+                                height: 200.0,
+                                fit: BoxFit.cover,
+                              ),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8.0)),
+                              clipBehavior: Clip.hardEdge,
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
+                        width: 200.0,
+                        margin: EdgeInsets.only(
+                          bottom: isLastMessageRight(index) ? 20.0 : 10.0,
+                        ),
+                        decoration: BoxDecoration(
+                            color: greyColor2,
+                            borderRadius: BorderRadius.circular(8.0)),
+                      ),
+                    )
+                  : SizedBox(height: 0, width: 0),
+
+              // Video
+              document['type'] == 2 && this.type == 10
+                  ? GestureDetector(
+                      onLongPress: () {
+                        adddeleteMsgIdx(index, document['timestamp'], 2);
+                      },
+                      onTap: () {
+                        audioPlayer.stop();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PlayVideo(
+                                  mediaUrl: document['msg'],
+                                ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        child: new Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(document['senderName'],
+                                      style: new TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                Text(
+                                  DateFormat('dd MMM kk:mm').format(
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                          int.parse(document['timestamp']) *
+                                              1000)),
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12.0,
+                                      fontStyle: FontStyle.italic),
                                 ),
                               ],
                             ),
-                            padding: EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
-                            width: 200.0,
-                            margin: EdgeInsets.only(
-                              bottom: isLastMessageRight(index) ? 20.0 : 10.0,
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 5.0)),
+                            Container(
+                              width: double.infinity,
+                              height: 142.0,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(15.0),
+                                ),
+                                image: DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: NetworkImage(document['thumbnail']),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.play_circle_filled,
+                                size: 60.0,
+                                color: Colors.white,
+                              ),
                             ),
-                            decoration: BoxDecoration(
-                                color: greyColor2,
-                                borderRadius: BorderRadius.circular(8.0)),
+                          ],
+                        ),
+                        width: 250.0,
+                        height: 180.0,
+                        decoration: BoxDecoration(
+                          color: greyColor2,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(15.0),
                           ),
-                        )
-
-                      // Video
-                      : document['type'] == 2 && this.type == 10
-                          ? GestureDetector(
-                              onLongPress: () {
-                                adddeleteMsgIdx(
-                                    index, document['timestamp'], 2);
-                              },
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PlayScreen(
-                                        url: document['msg'], type: 'network'),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                child: new Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        Expanded(
-                                          child: Text(document['senderName'],
-                                              style: new TextStyle(
-                                                  fontSize: 12.0,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        Text(
-                                          DateFormat('dd MMM kk:mm').format(
-                                              DateTime
-                                                  .fromMillisecondsSinceEpoch(
-                                                      int.parse(document[
-                                                              'timestamp']) *
-                                                          1000)),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12.0,
-                                              fontStyle: FontStyle.italic),
-                                        ),
-                                      ],
-                                    ),
-                                    Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 5.0)),
-                                    Container(
-                                      width: double.infinity,
-                                      height: 142.0,
+                        ),
+                        padding: EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
+                        margin: EdgeInsets.only(
+                          bottom: isLastMessageRight(index) ? 20.0 : 10.0,
+                          // right: 10.0
+                        ),
+                      ),
+                    )
+                  : SizedBox(height: 0, width: 0),
+              // playSong  audio long....short
+              document['type'] == 3
+                  ? GestureDetector(
+                      onLongPress: () {
+                        adddeleteMsgIdx(index, document['timestamp'], 3);
+                      },
+                      onTapUp: (TapUpDetails details) {
+                        isPlaying
+                            ? stop()
+                            : play(
+                                document['msg'].toString(),
+                                document['msg'].toString().replaceAll(
+                                    'http://oyeyaaroapi.plmlogix.com/AudioChat/',
+                                    ''));
+                      },
+                      child: Container(
+                        height: 103.0,
+                        width: 130.0,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8.0),
+                          ),
+                        ),
+                        margin: EdgeInsets.only(
+                            // bottom: isLastMessageRight(index) ? 20.0 : 10.0,
+                            ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Text(document['senderName'],
+                                style: TextStyle(
+                                    fontSize: 12.0,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold)),
+                            Container(
+                              height: 60.0,
+                              width: 60.0,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8.0),
+                                ),
+                              ),
+                              child: playPauseIcon(document['msg']
+                                      .toString()
+                                      .replaceAll(
+                                          'http://oyeyaaroapi.plmlogix.com/AudioChat/',
+                                          ''))
+                                  ? Container(
+                                      margin: EdgeInsets.all(3),
+                                      padding: EdgeInsets.all(5),
                                       decoration: BoxDecoration(
                                         color: Colors.black,
                                         borderRadius: BorderRadius.all(
-                                          Radius.circular(15.0),
-                                        ),
-                                        image: DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: NetworkImage(
-                                              document['thumbnail']),
+                                          Radius.circular(8.0),
                                         ),
                                       ),
-                                      child: Icon(
-                                        Icons.play_circle_filled,
-                                        size: 60.0,
-                                        color: Colors.white,
+                                      child: Column(
+                                        children: <Widget>[
+                                          LayoutBuilder(
+                                              builder: (context, constraint) {
+                                            return new Icon(
+                                              Icons.pause,
+                                              size: 40.0,
+                                              color: Colors.white,
+                                            );
+                                          }),
+                                        ],
+                                      ),
+                                    )
+                                  : Container(
+                                      margin: EdgeInsets.all(3),
+                                      padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(8.0),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: <Widget>[
+                                          Image.asset('assets/short.png',
+                                              width: 40.0, height: 40.0)
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                                width: 250.0,
-                                height: 180.0,
-                                decoration: BoxDecoration(
-                                  color: greyColor2,
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(15.0),
-                                  ),
-                                ),
-                                padding:
-                                    EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
-                                margin: EdgeInsets.only(
-                                  bottom:
-                                      isLastMessageRight(index) ? 20.0 : 10.0,
-                                  // right: 10.0
+                            ),
+                            Text(
+                              DateFormat('dd MMM kk:mm').format(
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      int.parse(document['timestamp']) * 1000)),
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12.0,
+                                  fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : SizedBox(height: 0, width: 0),
+              document['type'] == 4
+                  ?
+                  // playSong  audio ...long   type = 4
+                  GestureDetector(
+                      onLongPress: () {
+                        adddeleteMsgIdx(index, document['timestamp'], 4);
+                      },
+                      onTapUp: (TapUpDetails details) {
+                        print("onTapUp");
+                        isPlaying
+                            ? stop()
+                            : play(
+                                document['msg'].toString(),
+                                document['msg'].toString().replaceAll(
+                                    'http://oyeyaaroapi.plmlogix.com/Audio/',
+                                    ''));
+                      },
+                      child: Container(
+                        height: 103.0,
+                        width: 130.0,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8.0),
+                          ),
+                        ),
+                        margin: EdgeInsets.only(
+                            // bottom: isLastMessageRight(index) ? 20.0 : 10.0,
+                            ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Text(document['senderName'],
+                                style: new TextStyle(
+                                    fontSize: 12.0,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold)),
+                            Container(
+                              height: 60.0,
+                              width: 60.0,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8.0),
                                 ),
                               ),
-                            )
-
-                          // playSong  audio long....short
-                          : document['type'] == 3
-                              ? GestureDetector(
-                                  onLongPress: () {
-                                    adddeleteMsgIdx(
-                                        index, document['timestamp'], 3);
-                                  },
-                                  onTapUp: (TapUpDetails details) {
-                                    isPlaying
-                                        ? stop()
-                                        : play(
-                                            document['msg'].toString(),
-                                            document['msg'].toString().replaceAll(
-                                                'http://54.200.143.85:4200/AudioChat/',
-                                                ''));
-                                  },
-                                  child: Container(
-                                    height: 103.0,
-                                    width: 130.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(8.0),
-                                      ),
-                                    ),
-                                    margin: EdgeInsets.only(
-                                      bottom: isLastMessageRight(index)
-                                          ? 20.0
-                                          : 10.0,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: <Widget>[
-                                        Text(document['senderName'],
-                                            style: TextStyle(
-                                                fontSize: 12.0,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold)),
-                                        Container(
-                                          height: 60.0,
-                                          width: 60.0,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(8.0),
-                                            ),
-                                          ),
-                                          child: playPauseIcon(document['msg']
-                                                  .toString()
-                                                  .replaceAll(
-                                                      'http://54.200.143.85:4200/AudioChat/',
-                                                      ''))
-                                              ? Container(
-                                                  margin: EdgeInsets.all(3),
-                                                  padding: EdgeInsets.all(5),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(8.0),
-                                                    ),
-                                                  ),
-                                                  child: Column(
-                                                    children: <Widget>[
-                                                      LayoutBuilder(builder:
-                                                          (context,
-                                                              constraint) {
-                                                        return new Icon(
-                                                          Icons.pause,
-                                                          size: 40.0,
-                                                          color: Colors.white,
-                                                        );
-                                                      }),
-                                                    ],
-                                                  ),
-                                                )
-                                              : Container(
-                                                  margin: EdgeInsets.all(3),
-                                                  padding: EdgeInsets.all(5),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(8.0),
-                                                    ),
-                                                  ),
-                                                  child: Column(
-                                                    children: <Widget>[
-                                                      Image.asset(
-                                                          'assets/short.png',
-                                                          width: 40.0,
-                                                          height: 40.0)
-                                                    ],
-                                                  ),
-                                                ),
-                                        ),
-                                        Text(
-                                          DateFormat('dd MMM kk:mm').format(
-                                              DateTime
-                                                  .fromMillisecondsSinceEpoch(
-                                                      int.parse(document[
-                                                              'timestamp']) *
-                                                          1000)),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12.0,
-                                              fontStyle: FontStyle.italic),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : document['type'] == 4
-                                  ?
-                                  // playSong  audio ...long   type = 4
-                                  GestureDetector(
-                                      onLongPress: () {
-                                        adddeleteMsgIdx(
-                                            index, document['timestamp'], 4);
-                                      },
-                                      onTapUp: (TapUpDetails details) {
-                                        print("onTapUp");
-                                        isPlaying
-                                            ? stop()
-                                            : play(
-                                                document['msg'].toString(),
-                                                document['msg']
-                                                    .toString()
-                                                    .replaceAll(
-                                                        'http://54.200.143.85:4200/Audio/',
-                                                        ''));
-                                      },
-                                      child: Container(
-                                        height: 103.0,
-                                        width: 130.0,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(8.0),
-                                          ),
-                                        ),
-                                        margin: EdgeInsets.only(
-                                          bottom: isLastMessageRight(index)
-                                              ? 20.0
-                                              : 10.0,
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: <Widget>[
-                                            Text(document['senderName'],
-                                                style: new TextStyle(
-                                                    fontSize: 12.0,
-                                                    color: Colors.black,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            Container(
-                                              height: 60.0,
-                                              width: 60.0,
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(8.0),
-                                                ),
-                                              ),
-                                              child: playPauseIcon(document[
-                                                          'msg']
-                                                      .toString()
-                                                      .replaceAll(
-                                                          'http://54.200.143.85:4200/Audio/',
-                                                          ''))
-                                                  ? Container(
-                                                      margin: EdgeInsets.all(3),
-                                                      padding:
-                                                          EdgeInsets.all(5),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black,
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                          Radius.circular(8.0),
-                                                        ),
-                                                      ),
-                                                      child: Column(
-                                                        children: <Widget>[
-                                                          LayoutBuilder(builder:
-                                                              (context,
-                                                                  constraint) {
-                                                            return new Icon(
-                                                              Icons.pause,
-                                                              size: 40.0,
-                                                              color:
-                                                                  Colors.white,
-                                                            );
-                                                          }),
-                                                        ],
-                                                      ),
-                                                    )
-                                                  : Container(
-                                                      margin: EdgeInsets.all(3),
-                                                      padding:
-                                                          EdgeInsets.all(5),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black,
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                          Radius.circular(8.0),
-                                                        ),
-                                                      ),
-                                                      child: Column(
-                                                        children: <Widget>[
-                                                          LayoutBuilder(builder:
-                                                              (context,
-                                                                  constraint) {
-                                                            return new Icon(
-                                                              Icons.music_note,
-                                                              size: 40.0,
-                                                              color:
-                                                                  Colors.white,
-                                                            );
-                                                          }),
-                                                        ],
-                                                      ),
-                                                    ),
-                                            ),
-                                            Text(
-                                              DateFormat('dd MMM kk:mm').format(
-                                                  DateTime
-                                                      .fromMillisecondsSinceEpoch(
-                                                          int.parse(document[
-                                                                  'timestamp']) *
-                                                              1000)),
-                                              style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 12.0,
-                                                  fontStyle: FontStyle.italic),
-                                            ),
-                                          ],
+                              child: playPauseIcon(document['msg']
+                                      .toString()
+                                      .replaceAll(
+                                          'http://oyeyaaroapi.plmlogix.com/Audio/',
+                                          ''))
+                                  ? Container(
+                                      margin: EdgeInsets.all(3),
+                                      padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(8.0),
                                         ),
                                       ),
+                                      child: Column(
+                                        children: <Widget>[
+                                          LayoutBuilder(
+                                              builder: (context, constraint) {
+                                            return new Icon(
+                                              Icons.pause,
+                                              size: 40.0,
+                                              color: Colors.white,
+                                            );
+                                          }),
+                                        ],
+                                      ),
                                     )
-                                  : SizedBox(
-                                      height: 0,
-                                      width: 0,
-                                    )
+                                  : Container(
+                                      margin: EdgeInsets.all(3),
+                                      padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(8.0),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: <Widget>[
+                                          LayoutBuilder(
+                                              builder: (context, constraint) {
+                                            return new Icon(
+                                              Icons.music_note,
+                                              size: 40.0,
+                                              color: Colors.white,
+                                            );
+                                          }),
+                                        ],
+                                      ),
+                                    ),
+                            ),
+                            Text(
+                              DateFormat('dd MMM kk:mm').format(
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      int.parse(document['timestamp']) * 1000)),
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12.0,
+                                  fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : SizedBox(
+                      height: 0,
+                      width: 0,
+                    )
             ],
             mainAxisAlignment: MainAxisAlignment.end,
           ),
@@ -1439,7 +1478,7 @@ class ChatScreenState extends State<Chat> {
                     color: Colors.lightBlue[200].withOpacity(0.5),
                   ),
                 )
-              : Container()
+              : SizedBox(height: 0, width: 0)
         ],
       );
     } else {
@@ -1453,6 +1492,7 @@ class ChatScreenState extends State<Chat> {
                     ? new GestureDetector(
                         onTap: () {
                           print('open this user profile');
+                          audioPlayer.stop();
                           Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -1480,32 +1520,37 @@ class ChatScreenState extends State<Chat> {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(40.0),
-                                  child: CachedNetworkImage(
-                                    imageUrl:
-                                        'http://54.200.143.85:4200/getAvatarImageNow/${document['senderId']}',
+                                  child: Image.network(
+                                    'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${document['senderId']}',
                                     fit: BoxFit.cover,
-                                    placeholder: Padding(
-                                      padding: EdgeInsets.all(15),
-                                      child: SizedBox(
-                                        child: CircularProgressIndicator(
-                                            valueColor:
-                                                new AlwaysStoppedAnimation<
-                                                    Color>(Color(0xffb00bae3)),
-                                            strokeWidth: 1.0),
-                                      ),
-                                    ),
-                                    errorWidget: new Icon(
-                                      Icons.error,
-                                      color: Colors.black,
-                                    ),
                                   ),
+                                  // CachedNetworkImage(
+                                  //   imageUrl:
+                                  //       'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${document['senderId']}',
+                                  //   fit: BoxFit.cover,
+                                  //   placeholder: Padding(
+                                  //     padding: EdgeInsets.all(15),
+                                  //     child: SizedBox(
+                                  //       child: CircularProgressIndicator(
+                                  //           valueColor:
+                                  //               new AlwaysStoppedAnimation<
+                                  //                   Color>(Color(0xffb00bae3)),
+                                  //           strokeWidth: 1.0),
+                                  //     ),
+                                  //   ),
+                                  //   errorWidget: new Icon(
+                                  //     Icons.error,
+                                  //     color: Colors.black,
+                                  //   ),
+                                  // ),
                                 )),
                           ),
                         ),
                       )
                     : Container(width: 50.0),
+                //txt
+
                 document['type'] == 0
-                    //txt
                     ? Container(
                         child: new Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1549,450 +1594,406 @@ class ChatScreenState extends State<Chat> {
                             color: Colors.indigo[100],
                             borderRadius: BorderRadius.circular(8.0)),
                         margin: EdgeInsets.only(
-                            bottom: isLastMessageRight(index) ? 5.0 : 10.0,
+                            bottom: isLastMessageRight(index) ? 15.0 : 10.0,
                             left: 5.0),
                       )
-                    : document['type'] == 1 && this.type == 10
-                        //img
-                        ? Container(
-                            child: new Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: Text(document['senderName'],
-                                          style: new TextStyle(
-                                              fontSize: 12.0,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold)),
-                                    ),
-                                    Text(
-                                      DateFormat('dd MMM kk:mm').format(
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                              int.parse(document['timestamp']) *
-                                                  1000)),
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 12.0,
-                                          fontStyle: FontStyle.italic),
-                                    ),
-                                  ],
-                                ),
-                                Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 5.0)),
-                                Material(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      print(document['msg']);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ImageViewer(
-                                                imageUrl: document['msg'],
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                    child: CachedNetworkImage(
-                                      placeholder: Container(
-                                        child: CircularProgressIndicator(
-                                            valueColor:
-                                                new AlwaysStoppedAnimation<
-                                                    Color>(Color(0xffb00bae3))),
-                                        width: 200.0,
-                                        height: 200.0,
-                                        padding: EdgeInsets.all(70.0),
-                                        decoration: BoxDecoration(
-                                          color: Colors.indigo[100],
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(8.0),
-                                          ),
-                                        ),
-                                      ),
-                                      errorWidget: Material(
-                                        child: Image.asset(
-                                          'images/no_img.png',
-                                          width: 200.0,
-                                          height: 200.0,
-                                          fit: BoxFit.cover,
-                                        ),
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(8.0),
-                                        ),
-                                        clipBehavior: Clip.hardEdge,
-                                      ),
-                                      imageUrl: document['msg'],
-                                      width: 200.0,
-                                      height: 200.0,
-                                      fit: BoxFit.cover,
-                                    ),
+                    : SizedBox(height: 0, width: 0),
+
+                //img
+                document['type'] == 1 && this.type == 10
+                    ? GestureDetector(
+                        onLongPress: () {
+                          adddeleteMsgIdx(index, document['timestamp'], 1);
+                        },
+                        onTap: () {
+                          audioPlayer.stop();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ImageViewer(
+                                    imageUrl: document['msg'],
                                   ),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8.0)),
-                                  clipBehavior: Clip.hardEdge,
-                                ),
-                              ],
                             ),
-                            padding: EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
-                            width: 200.0,
-                            decoration: BoxDecoration(
-                                color: Colors.indigo[100],
-                                borderRadius: BorderRadius.circular(8.0)),
-                            margin: EdgeInsets.only(
-                                bottom: isLastMessageRight(index) ? 5.0 : 10.0,
-                                left: 5.0),
-                          )
-
-                        // video
-                        : document['type'] == 2 && this.type == 10
-                            ? Container(
-                                child: new Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        Expanded(
-                                          child: Text(document['senderName'],
-                                              style: new TextStyle(
-                                                  fontSize: 12.0,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        Text(
-                                          DateFormat('dd MMM kk:mm').format(
-                                              DateTime
-                                                  .fromMillisecondsSinceEpoch(
-                                                      int.parse(document[
-                                                              'timestamp']) *
-                                                          1000)),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12.0,
-                                              fontStyle: FontStyle.italic),
-                                        ),
-                                      ],
-                                    ),
-                                    Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 5.0)),
-                                    Container(
-                                      width: double.infinity,
-                                      height: 142.0,
-                                      decoration: BoxDecoration(
-                                        color: Colors.black,
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(15.0),
-                                        ),
-                                        image: DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: NetworkImage(
-                                              document['thumbnail']),
-                                        ),
-                                      ),
-                                      child: GestureDetector(
-                                        child: Icon(
-                                          Icons.play_circle_filled,
-                                          size: 60.0,
-                                          color: Colors.white,
-                                        ),
-                                        onTap: () {
-                                          print(
-                                              'opening video : ${document['thumbnail']}');
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => PlayScreen(
-                                                  url: document['msg'],
-                                                  type: 'network'),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                width: 250.0,
-                                height: 180.0,
-                                decoration: BoxDecoration(
-                                  color: Colors.indigo[100],
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(15.0),
+                          );
+                        },
+                        child: Container(
+                          child: new Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text(document['senderName'],
+                                        overflow: TextOverflow.ellipsis,
+                                        style: new TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold)),
                                   ),
-                                ),
-                                padding:
-                                    EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
-                                margin: EdgeInsets.only(
-                                    bottom:
-                                        isLastMessageRight(index) ? 5.0 : 10.0,
-                                    left: 5.0),
-                              )
-
-                            //audio long....short
-                            : document['type'] == 3
-                                ? Container(
-                                    height: 103.0,
-                                    width: 130.0,
+                                  Text(
+                                    DateFormat('dd MMM kk:mm').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            int.parse(document['timestamp']) *
+                                                1000)),
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12.0,
+                                        fontStyle: FontStyle.italic),
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 5.0)),
+                              Material(
+                                child: CachedNetworkImage(
+                                  placeholder: Container(
+                                    child: CircularProgressIndicator(
+                                        valueColor:
+                                            new AlwaysStoppedAnimation<Color>(
+                                                Color(0xffb00bae3))),
+                                    padding: EdgeInsets.all(70.0),
                                     decoration: BoxDecoration(
+                                      color: greyColor2,
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(8.0),
                                       ),
                                     ),
-                                    margin: EdgeInsets.only(
-                                        bottom: isLastMessageRight(index)
-                                            ? 5.0
-                                            : 10.0,
-                                        left: 5.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Row(
-                                          children: <Widget>[
-                                            Expanded(
-                                              child: Text(
-                                                  document['senderName'],
-                                                  style: new TextStyle(
-                                                      fontSize: 12.0,
-                                                      color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                            ),
-                                          ],
-                                        ),
-                                        Container(
-                                          height: 60.0,
-                                          width: 60.0,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(8.0),
-                                            ),
-                                          ),
-                                          child: GestureDetector(
-                                            child: playPauseIcon(document['msg']
-                                                    .toString()
-                                                    .replaceAll(
-                                                        'http://54.200.143.85:4200/AudioChat/',
-                                                        ''))
-                                                ? Container(
-                                                    margin: EdgeInsets.all(3),
-                                                    padding: EdgeInsets.all(5),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.black,
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                        Radius.circular(8.0),
-                                                      ),
-                                                    ),
-                                                    child: Column(
-                                                      children: <Widget>[
-                                                        LayoutBuilder(builder:
-                                                            (context,
-                                                                constraint) {
-                                                          return new Icon(
-                                                            Icons.pause,
-                                                            size: 40.0,
-                                                            color: Colors.white,
-                                                          );
-                                                        }),
-                                                      ],
-                                                    ),
-                                                  )
-                                                : Container(
-                                                    margin: EdgeInsets.all(3),
-                                                    padding: EdgeInsets.all(5),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.black,
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                        Radius.circular(8.0),
-                                                      ),
-                                                    ),
-                                                    child: Column(
-                                                      children: <Widget>[
-                                                        Image.asset(
-                                                            'assets/short.png',
-                                                            width: 40.0,
-                                                            height: 40.0)
-                                                      ],
-                                                    ),
-                                                  ),
-                                            onTapUp: (TapUpDetails details) {
-                                              print("onTapUp");
-                                              isPlaying
-                                                  ? stop()
-                                                  : play(
-                                                      document['msg']
-                                                          .toString(),
-                                                      document['msg']
-                                                          .toString()
-                                                          .replaceAll(
-                                                              'http://54.200.143.85:4200/AudioChat/',
-                                                              ''));
-                                            },
-                                          ),
-                                        ),
-                                        Text(
-                                          DateFormat('dd MMM kk:mm').format(
-                                              DateTime
-                                                  .fromMillisecondsSinceEpoch(
-                                                      int.parse(document[
-                                                              'timestamp']) *
-                                                          1000)),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12.0,
-                                              fontStyle: FontStyle.italic),
-                                        ),
-                                      ],
+                                  ),
+                                  errorWidget: Material(
+                                    child: Image.asset(
+                                      'images/no_img.png',
+                                      width: 200.0,
+                                      height: 200.0,
+                                      fit: BoxFit.cover,
                                     ),
-                                  )
-//type 4....long
-                                : document['type'] == 4
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(8.0),
+                                    ),
+                                    clipBehavior: Clip.hardEdge,
+                                  ),
+                                  imageUrl: document['msg'],
+                                  width: 200.0,
+                                  height: 200.0,
+                                  fit: BoxFit.cover,
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8.0)),
+                                clipBehavior: Clip.hardEdge,
+                              ),
+                            ],
+                          ),
+                          padding: EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
+                          width: 200.0,
+                          margin: EdgeInsets.only(
+                            bottom: isLastMessageRight(index) ? 15.0 : 10.0,
+                          ),
+                          decoration: BoxDecoration(
+                              color: Colors.indigo[100],
+                              borderRadius: BorderRadius.circular(8.0)),
+                        ),
+                      )
+                    : SizedBox(height: 0, width: 0),
+
+                // video
+                document['type'] == 2 && this.type == 10
+                    ? Container(
+                        child: new Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(document['senderName'],
+                                      style: new TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                Text(
+                                  DateFormat('dd MMM kk:mm').format(
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                          int.parse(document['timestamp']) *
+                                              1000)),
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12.0,
+                                      fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 5.0)),
+                            Container(
+                              width: double.infinity,
+                              height: 142.0,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(15.0),
+                                ),
+                                image: DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: NetworkImage(document['thumbnail']),
+                                ),
+                              ),
+                              child: GestureDetector(
+                                child: Icon(
+                                  Icons.play_circle_filled,
+                                  size: 60.0,
+                                  color: Colors.white,
+                                ),
+                                onTap: () {
+                                  audioPlayer.stop();
+                                  print(
+                                      'opening video : ${document['thumbnail']}');
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PlayVideo(
+                                            mediaUrl: document['msg'],
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        width: 250.0,
+                        height: 180.0,
+                        decoration: BoxDecoration(
+                          color: Colors.indigo[100],
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(15.0),
+                          ),
+                        ),
+                        padding: EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
+                        margin: EdgeInsets.only(
+                            bottom: isLastMessageRight(index) ? 15.0 : 10.0,
+                            left: 5.0),
+                      )
+                    : SizedBox(height: 0, width: 0),
+
+                //audio long....short
+                document['type'] == 3
+                    ? Container(
+                        height: 103.0,
+                        width: 130.0,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8.0),
+                          ),
+                        ),
+                        margin: EdgeInsets.only(
+                            // bottom: isLastMessageRight(index) ? 5.0 : 10.0,
+                            left: 5.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(document['senderName'],
+                                      style: new TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              height: 60.0,
+                              width: 60.0,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8.0),
+                                ),
+                              ),
+                              child: GestureDetector(
+                                child: playPauseIcon(document['msg']
+                                        .toString()
+                                        .replaceAll(
+                                            'http://oyeyaaroapi.plmlogix.com/AudioChat/',
+                                            ''))
                                     ? Container(
-                                        height: 103.0,
-                                        width: 130.0,
+                                        margin: EdgeInsets.all(3),
+                                        padding: EdgeInsets.all(5),
                                         decoration: BoxDecoration(
+                                          color: Colors.black,
                                           borderRadius: BorderRadius.all(
                                             Radius.circular(8.0),
                                           ),
                                         ),
-                                        margin: EdgeInsets.only(
-                                            bottom: isLastMessageRight(index)
-                                                ? 5.0
-                                                : 10.0,
-                                            left: 5.0),
                                         child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
                                           children: <Widget>[
-                                            Row(
-                                              children: <Widget>[
-                                                Expanded(
-                                                  child: Text(
-                                                      document['senderName'],
-                                                      style: TextStyle(
-                                                          fontSize: 12.0,
-                                                          color: Colors.black,
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ),
-                                              ],
-                                            ),
-                                            Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    vertical: 2.0)),
-                                            GestureDetector(
-                                              child: Row(
-                                                children: <Widget>[
-                                                  playPauseIcon(document['msg']
-                                                          .toString()
-                                                          .replaceAll(
-                                                              'http://54.200.143.85:4200/Audio/',
-                                                              ''))
-                                                      ? Container(
-                                                          margin:
-                                                              EdgeInsets.all(3),
-                                                          padding:
-                                                              EdgeInsets.all(5),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: Colors.black,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .all(
-                                                              Radius.circular(
-                                                                  8.0),
-                                                            ),
-                                                          ),
-                                                          child: Column(
-                                                            children: <Widget>[
-                                                              LayoutBuilder(builder:
-                                                                  (context,
-                                                                      constraint) {
-                                                                return Icon(
-                                                                  Icons.pause,
-                                                                  size: 40.0,
-                                                                  color: Colors
-                                                                      .white,
-                                                                );
-                                                              }),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      : Container(
-                                                          margin:
-                                                              EdgeInsets.all(3),
-                                                          padding:
-                                                              EdgeInsets.all(5),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: Colors.black,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .all(
-                                                              Radius.circular(
-                                                                  8.0),
-                                                            ),
-                                                          ),
-                                                          child: Column(
-                                                            children: <Widget>[
-                                                              LayoutBuilder(builder:
-                                                                  (context,
-                                                                      constraint) {
-                                                                return Icon(
-                                                                  Icons
-                                                                      .music_note,
-                                                                  size: 40.0,
-                                                                  color: Colors
-                                                                      .white,
-                                                                );
-                                                              }),
-                                                            ],
-                                                          ),
-                                                        )
-                                                ],
-                                              ),
-                                              onTapUp: (TapUpDetails details) {
-                                                print("onTapUp");
-                                                isPlaying
-                                                    ? stop()
-                                                    : play(
-                                                        document['msg']
-                                                            .toString(),
-                                                        document['msg']
-                                                            .toString()
-                                                            .replaceAll(
-                                                                'http://54.200.143.85:4200/Audio/',
-                                                                ''));
-                                              },
-                                            ),
-                                            Text(
-                                              DateFormat('dd MMM kk:mm').format(
-                                                  DateTime
-                                                      .fromMillisecondsSinceEpoch(
-                                                          int.parse(document[
-                                                                  'timestamp']) *
-                                                              1000)),
-                                              style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 12.0,
-                                                  fontStyle: FontStyle.italic),
-                                            ),
+                                            LayoutBuilder(
+                                                builder: (context, constraint) {
+                                              return new Icon(
+                                                Icons.pause,
+                                                size: 40.0,
+                                                color: Colors.white,
+                                              );
+                                            }),
                                           ],
                                         ),
                                       )
-                                    : SizedBox(
-                                        height: 0,
-                                        width: 0,
-                                      )
+                                    : Container(
+                                        margin: EdgeInsets.all(3),
+                                        padding: EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black,
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(8.0),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          children: <Widget>[
+                                            Image.asset('assets/short.png',
+                                                width: 40.0, height: 40.0)
+                                          ],
+                                        ),
+                                      ),
+                                onTapUp: (TapUpDetails details) {
+                                  print("onTapUp");
+                                  isPlaying
+                                      ? stop()
+                                      : play(
+                                          document['msg'].toString(),
+                                          document['msg'].toString().replaceAll(
+                                              'http://oyeyaaroapi.plmlogix.com/AudioChat/',
+                                              ''));
+                                },
+                              ),
+                            ),
+                            Text(
+                              DateFormat('dd MMM kk:mm').format(
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      int.parse(document['timestamp']) * 1000)),
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12.0,
+                                  fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SizedBox(height: 0, width: 0),
+//type 4....long
+                document['type'] == 4
+                    ? Container(
+                        height: 103.0,
+                        width: 130.0,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8.0),
+                          ),
+                        ),
+                        margin: EdgeInsets.only(
+                            // bottom: isLastMessageRight(index) ? 5.0 : 10.0,
+                            left: 5.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(document['senderName'],
+                                      style: TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 2.0)),
+                            GestureDetector(
+                              child: Row(
+                                children: <Widget>[
+                                  playPauseIcon(document['msg']
+                                          .toString()
+                                          .replaceAll(
+                                              'http://oyeyaaroapi.plmlogix.com/Audio/',
+                                              ''))
+                                      ? Container(
+                                          margin: EdgeInsets.all(3),
+                                          padding: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black,
+                                            borderRadius: BorderRadius.all(
+                                              Radius.circular(8.0),
+                                            ),
+                                          ),
+                                          child: Column(
+                                            children: <Widget>[
+                                              LayoutBuilder(builder:
+                                                  (context, constraint) {
+                                                return Icon(
+                                                  Icons.pause,
+                                                  size: 40.0,
+                                                  color: Colors.white,
+                                                );
+                                              }),
+                                            ],
+                                          ),
+                                        )
+                                      : Container(
+                                          margin: EdgeInsets.all(3),
+                                          padding: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black,
+                                            borderRadius: BorderRadius.all(
+                                              Radius.circular(8.0),
+                                            ),
+                                          ),
+                                          child: Column(
+                                            children: <Widget>[
+                                              LayoutBuilder(builder:
+                                                  (context, constraint) {
+                                                return Icon(
+                                                  Icons.music_note,
+                                                  size: 40.0,
+                                                  color: Colors.white,
+                                                );
+                                              }),
+                                            ],
+                                          ),
+                                        )
+                                ],
+                              ),
+                              onTapUp: (TapUpDetails details) {
+                                print("onTapUp");
+                                isPlaying
+                                    ? stop()
+                                    : play(
+                                        document['msg'].toString(),
+                                        document['msg'].toString().replaceAll(
+                                            'http://oyeyaaroapi.plmlogix.com/Audio/',
+                                            ''));
+                              },
+                            ),
+                            Text(
+                              DateFormat('dd MMM kk:mm').format(
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      int.parse(document['timestamp']) * 1000)),
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12.0,
+                                  fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SizedBox(
+                        height: 0,
+                        width: 0,
+                      )
               ],
             ),
           ],
           crossAxisAlignment: CrossAxisAlignment.start,
         ),
-        margin: EdgeInsets.only(bottom: 10.0),
+        // margin: EdgeInsets.only(bottom: 10.0),
       );
     }
   }
@@ -2040,7 +2041,7 @@ class ChatScreenState extends State<Chat> {
   }
 
   bool isLastMessageLeft(int index) {
-    if ((index > 0 &&
+    if ((index >= 0 &&
             index < listMessage.length - 1 &&
             listMessage != null &&
             listMessage[index + 1]['senderName'] !=
@@ -2115,14 +2116,14 @@ class ChatScreenState extends State<Chat> {
                 isPlaying
                     ? stop()
                     : play(
-                        "http://54.200.143.85:4200/AudioChat/" +
+                        "http://oyeyaaroapi.plmlogix.com/AudioChat/" +
                             listData.toString(),
                         listData);
               },
               onLongPress: () {
                 print("onLongPress");
                 onTextMessage(
-                    "http://54.200.143.85:4200/AudioChat/" +
+                    "http://oyeyaaroapi.plmlogix.com/AudioChat/" +
                         listData.toString(),
                     3);
               },
@@ -2176,14 +2177,15 @@ class ChatScreenState extends State<Chat> {
                 isPlaying
                     ? stop()
                     : play(
-                        "http://54.200.143.85:4200/Audio/" +
+                        "http://oyeyaaroapi.plmlogix.com/Audio/" +
                             listData.toString(),
                         listData);
               },
               onLongPress: () {
                 print("onLongPress"); //add loading true
                 onTextMessage(
-                    "http://54.200.143.85:4200/Audio/" + listData.toString(),
+                    "http://oyeyaaroapi.plmlogix.com/Audio/" +
+                        listData.toString(),
                     4);
               },
             );
@@ -2317,11 +2319,11 @@ class ChatScreenState extends State<Chat> {
                 margin: new EdgeInsets.symmetric(horizontal: 8.0),
                 child: new IconButton(
                   icon: new Icon(Icons.send),
-                  onPressed: !textSending ?() {
-                    onTextMessage(textEditingController.text, 0);
-                  } 
-                  :
-                  null,
+                  onPressed: !textSending
+                      ? () {
+                          onTextMessage(textEditingController.text, 0);
+                        }
+                      : null,
                   color: Colors.white,
                 ),
               ),
@@ -2392,11 +2394,16 @@ class ChatScreenState extends State<Chat> {
                               Color(0xffb00bae3))));
                 } else {
                   listMessage = snapshot.data.documents;
+
+                  print('-----listMessage----${listMessage.length}');
                   return ListView.builder(
                     padding: EdgeInsets.fromLTRB(3.0, 10.0, 5.0, 0.0),
                     itemBuilder: (context, index) =>
-                        buildItem(index, snapshot.data.documents[index]),
-                    itemCount: snapshot.data.documents.length,
+                        buildItem(index, listMessage[index]
+                            //             // snapshot.data.documents[index]
+                            ),
+                    itemCount: listMessage.length,
+                    //     // snapshot.data.documents.length,
                     reverse: true,
                     controller: listScrollController,
                   );
@@ -2411,11 +2418,9 @@ class ChatScreenState extends State<Chat> {
     songSearchresult2.clear();
 
     if (isSearching != null) {
-      //make it false !null
       for (int i = 0; i < _songList1.length; i++) {
         String data = _songList1[i];
         if (data.toLowerCase().contains(searchText.toLowerCase())) {
-          // String changed =  data.replaceAll('.mp3', '');
           searchresult.add(data); //remove .mp4  nt here
         }
       }
@@ -2424,8 +2429,6 @@ class ChatScreenState extends State<Chat> {
         String data = _songList2[i];
         if (data.toLowerCase().contains(searchText.toLowerCase())) {
           songSearchresult2.add(data);
-          // print('****songSearchresult2 added :: ${songSearchresult2}');
-          //remove .mp4  nt here
         }
       }
 
@@ -2434,97 +2437,6 @@ class ChatScreenState extends State<Chat> {
       }
     }
   }
-
-  //confirm delete alert
-  // _logout() {
-  //   showDialog(
-  //       context: context,
-  //       builder: (BuildContext context) {
-  //         return SimpleDialog(
-  //           contentPadding:
-  //               EdgeInsets.only(left: 0.0, right: 0.0, top: 0.0, bottom: 0.0),
-  //           children: <Widget>[
-  //             Container(
-  //               color: Color(0xffb00bae3),
-  //               margin: EdgeInsets.all(0.0),
-  //               padding: EdgeInsets.only(bottom: 10.0, top: 10.0),
-  //               height: 80.0,
-  //               child: Column(
-  //                 children: <Widget>[
-  //                   Text(
-  //                     'Logout',
-  //                     style: TextStyle(
-  //                         color: Colors.white,
-  //                         fontSize: 20.0,
-  //                         fontWeight: FontWeight.bold),
-  //                   ),
-  //                   Padding(
-  //                     padding: EdgeInsets.only(bottom: 10),
-  //                   ),
-  //                   Text(
-  //                     'Are you sure to logout from app?',
-  //                     style: TextStyle(color: Colors.white70, fontSize: 14.0),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //             Container(
-  //               height: 50,
-  //               child: Row(
-  //                 children: <Widget>[
-  //                   SimpleDialogOption(
-  //                     onPressed: () {
-  //                       print('pressed cancel');
-  //                       Navigator.pop(context, 0);
-  //                     },
-  //                     child: Row(
-  //                       children: <Widget>[
-  //                         Container(
-  //                           child: Icon(
-  //                             Icons.cancel,
-  //                             color: Color(0xffb00bae3),
-  //                           ),
-  //                           margin: EdgeInsets.only(right: 10.0),
-  //                         ),
-  //                         Text(
-  //                           'CANCEL',
-  //                           style: TextStyle(fontWeight: FontWeight.bold),
-  //                         )
-  //                       ],
-  //                     ),
-  //                   ),
-  //                   SimpleDialogOption(
-  //                     onPressed: () {
-  //                       print('pressed yes');
-  //                       FirebaseAuth.instance.signOut().then((action) {
-  //                         _clearSharedPref();
-  //                         Navigator.of(context).pushNamedAndRemoveUntil(
-  //                             '/loginpage', (Route<dynamic> route) => false);
-  //                       });
-  //                     },
-  //                     child: Row(
-  //                       children: <Widget>[
-  //                         Container(
-  //                           child: Icon(
-  //                             Icons.check_circle,
-  //                             color: Color(0xffb00bae3),
-  //                           ),
-  //                           margin: EdgeInsets.only(right: 10.0),
-  //                         ),
-  //                         Text(
-  //                           'YES',
-  //                           style: TextStyle(fontWeight: FontWeight.bold),
-  //                         )
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             )
-  //           ],
-  //         );
-  //       });
-  // }
 
   deleteMsg() async {
     for (var i = 0; i < this.indexesToDelete.length; i++) {
@@ -2541,7 +2453,7 @@ class ChatScreenState extends State<Chat> {
 
     //call delete from album service
     http.Response response =
-        await http.post("http://54.200.143.85:4200/deleteMsgs",
+        await http.post("http://oyeyaaroapi.plmlogix.com/deleteMsgs",
             headers: {"Content-Type": "application/json"},
             body: jsonEncode({
               "dialog_id": peerId,
@@ -2586,16 +2498,4 @@ class ChatScreenState extends State<Chat> {
       }
     });
   }
-}
-
-class MyClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    var path = new Path();
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClip) => false;
 }

@@ -18,14 +18,14 @@ class CurrentUser {
 
   loadUserDetails() async {
     try {
-    print("in main userLoaded: ${userId} , ${username} , ${groupId} , ${collegeName} , ${phone} , ${email} , ${filterActive} ,");
+    print("in main userLoaded: $userId , ${username} , ${groupId} , ${collegeName} , ${phone} , ${email} , ${filterActive} ,");
 
       SharedPreferences _prefs = await SharedPreferences.getInstance();
       this.userId = _prefs.getString('userPin');
       
       this.username = _prefs.getString('userName');
       this.photoURL =
-          "http://54.200.143.85:4200/profiles/now/" + this.userId + ".jpg";
+          "http://oyeyaaroapi.plmlogix.com/profiles/now/" + this.userId + ".jpg";
       this.groupId = _prefs.getString('groupId');
       this.collegeName = _prefs.getString('collegeName');
       this.phone = _prefs.getString('userPhone');
@@ -62,7 +62,7 @@ class CurrentUser {
       _prefs.setInt('hideChatMedia', user['hideChatMedia']);
     _prefs.setString('filterActive', "All");
     this.photoURL =
-        "http://54.200.143.85:4200/profiles/now/" + this.userId + ".jpg";
+        "http://oyeyaaroapi.plmlogix.com/profiles/now/" + this.userId + ".jpg";
 
     await loadUserDetails();
   }

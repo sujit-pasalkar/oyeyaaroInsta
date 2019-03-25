@@ -46,7 +46,7 @@ Future<List<ChatModel>> fetchPrivateChat(http.Client client) async {
 
   var body2=jsonEncode({"senderPin":"$pin"});
   final response =
-  await client.post("http://54.200.143.85:4200/fetchChats",
+  await client.post("http://oyeyaaroapi.plmlogix.com/fetchChats",
       headers: {"Content-Type": "application/json"},body:body2);
   print(response.body);
   var data=jsonDecode(response.body);
