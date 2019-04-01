@@ -57,7 +57,7 @@ class GroupScreenStateState extends State<GroupScreenState> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CreateGroup(),
+              builder: (context) => CreateGroup( ),
             ),
           );
         },
@@ -122,7 +122,7 @@ class GroupScreenStateState extends State<GroupScreenState> {
            Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CreateNewGroup(),
+              builder: (context) => CreateNewGroup(appBarName: 'New Group'),
             ));
         }
         break;

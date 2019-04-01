@@ -10,11 +10,15 @@ import 'package:video_player/video_player.dart';
 import 'package:uuid/uuid.dart';
 import 'package:thumbnails/thumbnails.dart';
 import '../models/data-service.dart';
+import '../cameraModule/controllers/commonFunctions.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
+import '../HomePage/pages/recording/getVideo.dart';
 
 class UploadVideo extends StatefulWidget {
   final String tag;
+  final String filePath;
 
-  UploadVideo({@optionalTypeArgs this.tag});
+  UploadVideo({@optionalTypeArgs this.tag, @optionalTypeArgs this.filePath});
 
   _UploadVideo createState() => new _UploadVideo();
 }
@@ -33,6 +37,11 @@ class _UploadVideo extends State<UploadVideo> {
   @override
   initState() {
     super.initState();
+    // if(widget.filePath != null){
+    //   videoFile = File(widget.filePath);
+    //   _controller = VideoPlayerController.file(videoFile);
+    //   await _controller.initialize();
+    // }
     privacy.changePrivacy('Public');
     captionController.text = widget.tag;
     _load();
@@ -72,12 +81,15 @@ class _UploadVideo extends State<UploadVideo> {
                 child: ListTile(
                   leading: ClipOval(
                     child: Container(
-                    height: 60.0,
-                    width: 60.0,
-                    child: Image(
-                      image: NetworkImage(currentUser.photoURL),
+                      height: 60.0,
+                      width: 60.0,
+                      child: Image(
+                        image: NetworkImage(
+                          currentUser.photoURL,
+                        ),
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
                   ),
                   title: Text(
                     currentUser.username,
@@ -182,21 +194,6 @@ class _UploadVideo extends State<UploadVideo> {
                               ),
                             ),
                           ),
-                          // Positioned(
-                          //   bottom: 0.0,
-                          //   right: 0.0,
-                          //   child: Container(
-                          //     color: Colors.black.withOpacity(0.50),
-                          //     child: IconButton(
-                          //       icon: Icon(
-                          //         privacy.icon,
-                          //         color: Colors.white,
-                          //       ),
-                          //       tooltip: "Privacy",
-                          //       onPressed: _changePrivacy,
-                          //     ),
-                          //   ),
-                          // ),
                         ],
                       ),
               ),
@@ -280,6 +277,43 @@ class _UploadVideo extends State<UploadVideo> {
                   _controller = VideoPlayerController.file(videoFile);
                   await _controller.initialize();
                   setState(() {});
+                },
+              ),
+              Divider(),
+              FlatButton(
+                padding: EdgeInsets.symmetric(vertical: 10.0),
+                child: Row(
+                  children: <Widget>[
+                    Text("Recorded Videos"),
+                    Spacer(),
+                    Image(
+                      color: Colors.black,
+                      image: new AssetImage("assets/video_call.png"),
+                      width: 21.0,
+                      height: 21.0,
+                      fit: BoxFit.scaleDown,
+                    )
+                  ],
+                ),
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final recordedVideoPath = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GetVideo(),
+                    ),
+                  );
+
+                  if (recordedVideoPath != null) {
+                    print('selected record  video path  : $recordedVideoPath');
+                    videoFile = new File(recordedVideoPath);
+                    _controller = VideoPlayerController.file(videoFile);
+                    await _controller.initialize();
+                    setState(() {});
+                  }
+
+                  // videoFile =
+                  //     await ImagePicker.pickVideo(source: ImageSource.gallery);
                 },
               ),
               Divider(),
@@ -411,7 +445,11 @@ class _UploadVideo extends State<UploadVideo> {
       print("Original file size: " + (fileSize / 1024).toString() + " KB");
 
       if ((fileSize / 1024) > 2048) {
-        String compressedVideoUrl = await _compressVideo(videoFile.path);
+        // if ((fileSize / 1024) >= 512000) {
+        //    Fluttertoast.showToast(msg: 'video size is greater than 500MB!');
+        // }
+        CommonFunctions cmf = new CommonFunctions();
+        String compressedVideoUrl = await cmf.compressVideo(videoFile.path);
         compressedVideo = File(compressedVideoUrl);
       } else {
         compressedVideo = videoFile;
@@ -420,11 +458,13 @@ class _UploadVideo extends State<UploadVideo> {
       fileSize = await compressedVideo.length();
 
       print("Compressed file size: " + (fileSize / 1024).toString() + " KB");
+      print('Compressed file ${compressedVideo.path}');
 
       String uuid = Uuid().v1();
 
       String mediaUrl =
           await dataService.uploadFileToS3(compressedVideo, uuid, ".mp4");
+      print('video uploaded to s3');
 
       String thumb = await Thumbnails.getThumbnail(
           thumbnailFolder: '/storage/emulated/0/OyeYaaro/.thumbnails',
@@ -433,6 +473,7 @@ class _UploadVideo extends State<UploadVideo> {
           quality: 30);
 
       await dataService.uploadFileToS3(File(thumb), uuid, ".png");
+      print('video thumbnail uploaded to s3');
 
       print("mediaUrl: " + mediaUrl);
 
@@ -447,27 +488,11 @@ class _UploadVideo extends State<UploadVideo> {
       });
       Navigator.pop(context);
     } catch (e) {
-      print(e);
+      print('err : $e');
       setState(() {
         uploading = false;
       });
     }
-  }
-
-  Future<String> _compressVideo(String originalVideoUrl) async {
-    String compressedVideoUrl;
-    MethodChannel platform = const MethodChannel("plmlogix.recordvideo/info");
-
-    Map<String, dynamic> data = <String, dynamic>{
-      'originalVideoUrl': originalVideoUrl,
-    };
-
-    try {
-      compressedVideoUrl = await platform.invokeMethod('compressVideo', data);
-    } catch (e) {
-      print(e);
-    }
-    return compressedVideoUrl;
   }
 
   Future<bool> saveToFireStore({String mediaUrl, String description}) async {
@@ -477,7 +502,8 @@ class _UploadVideo extends State<UploadVideo> {
     DocumentReference tagReference =
         Firestore.instance.collection('insta_tags').document("tags");
 
-    http.Response response = await http.get('http://oyeyaaroapi.plmlogix.com/time');
+    http.Response response =
+        await http.get('http://oyeyaaroapi.plmlogix.com/time');
     int timestamp = int.parse(jsonDecode(response.body)['timestamp']);
 
     List<String> hashtags = List<String>();

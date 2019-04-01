@@ -70,7 +70,7 @@ class _UploadImage extends State<UploadImage> {
                     height: 60.0,
                     width: 60.0,
                     child: Image(
-                      image: NetworkImage(currentUser.photoURL),
+                      image: NetworkImage(currentUser.photoURL,),fit: BoxFit.cover,
                     ),
                   ),
                   ),

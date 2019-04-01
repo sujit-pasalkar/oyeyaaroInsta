@@ -37,6 +37,8 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
   int kStartValue = 30;
   int kEndValue = 30;
 
+  // double scale = 4.1;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +59,8 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
     );
 
     _controller.forward(from: 0.0);
+
+    // controller.notifyListeners();
   }
 
   @override
@@ -98,9 +102,14 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
           _isReady = true;
         });
       });
+      controller.addListener(() {
+        print("camera preview size;" + controller.value.previewSize.toString());
+      });
     } on CameraException catch (e) {
       CommonFunctions.showSnackbar(context, e.description);
     }
+
+    
   }
 
   Widget build(BuildContext context) {
@@ -127,14 +136,24 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
       return Container(
         child: Stack(
           children: <Widget>[
-            new Transform.scale(
-              scale: 1.1 / controller.value.aspectRatio,
-              child: new Center(
-                child: new AspectRatio(
-                    aspectRatio: controller.value.aspectRatio,
-                    child: new CameraPreview(controller)),
+            // GestureDetector(
+            //   onScaleUpdate: (one) {
+            //     print(one.scale);
+            //       setState(() {
+            //         // scale = one.scale;
+            //       });
+            //   },
+            //   child: 
+              new Transform.scale(
+                scale: 1.1/ controller.value.aspectRatio,
+                child: 
+                new Center(
+                  child: new AspectRatio(
+                      aspectRatio:controller.value.aspectRatio,
+                      child: new CameraPreview(controller)),
+                ),
               ),
-            ),
+            // ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -148,24 +167,25 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                       alignment: Alignment.centerLeft,
                       child: Material(
                         color: Colors.transparent,
-                        child:
-                        !_isRecording?  InkWell(
-                          borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                          onTap:allowDeactivate ? () {
-                            _navigateAndDisplaySelection(context);
-                          }
-                          :
-                          null,
-                          child: Container(
-                            padding: EdgeInsets.all(4.0),
-                            child: Icon(
-                              Icons.library_music,
-                              color: Colors.white,
-                              size: 40.0,
-                            ),
-                          ),
-                        ):
-                        SizedBox(height: 0,width: 0),
+                        child: !_isRecording
+                            ? InkWell(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(50.0)),
+                                onTap: allowDeactivate
+                                    ? () {
+                                        _navigateAndDisplaySelection(context);
+                                      }
+                                    : null,
+                                child: Container(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Icon(
+                                    Icons.library_music,
+                                    color: Colors.white,
+                                    size: 40.0,
+                                  ),
+                                ),
+                              )
+                            : SizedBox(height: 0, width: 0),
                       ),
                     ),
                     Align(
@@ -179,33 +199,33 @@ class _RecordClipState extends State<RecordClip> with TickerProviderStateMixin {
                       alignment: Alignment.centerRight,
                       child: Material(
                         color: Colors.transparent,
-                        child:
-                        !_isRecording?  InkWell(
-                          borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                          onTap: () {
-                            if (!_toggleCamera) {
-                              setState(() {
-                                _toggleCamera = true;
-                              });
-                              onCameraSelected(cameras[1]);
-                            } else {
-                              setState(() {
-                                _toggleCamera = false;
-                              });
-                              onCameraSelected(cameras[0]);
-                            }
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(4.0),
-                            child: Icon(
-                              Icons.cached,
-                              color: Colors.white,
-                              size: 40.0,
-                            ),
-                          ),
-                        )
-                        :
-                        SizedBox(height: 0,width: 0),
+                        child: !_isRecording
+                            ? InkWell(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(50.0)),
+                                onTap: () {
+                                  if (!_toggleCamera) {
+                                    setState(() {
+                                      _toggleCamera = true;
+                                    });
+                                    onCameraSelected(cameras[1]);
+                                  } else {
+                                    setState(() {
+                                      _toggleCamera = false;
+                                    });
+                                    onCameraSelected(cameras[0]);
+                                  }
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Icon(
+                                    Icons.cached,
+                                    color: Colors.white,
+                                    size: 40.0,
+                                  ),
+                                ),
+                              )
+                            : SizedBox(height: 0, width: 0),
                       ),
                     ),
                   ],

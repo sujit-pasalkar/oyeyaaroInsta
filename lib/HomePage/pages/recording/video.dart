@@ -18,7 +18,7 @@ import 'package:thumbnails/thumbnails.dart';
 class VedioRecordingScreen extends StatefulWidget {
   final ScrollController hideButtonController;
 
-  VedioRecordingScreen({@required this.hideButtonController, Key key})
+  VedioRecordingScreen({ this.hideButtonController, Key key})
       : super(key: key);
   @override
   _VedioRecordingScreenState createState() => _VedioRecordingScreenState();
@@ -106,6 +106,7 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
                   icon: Icon(Icons.share),
                   onPressed: () {
                     shareVideo();
+                    // UploadVideo(filePath: filepath)
                   },
                 ),
                 this.selectedIndexes.length == 1
@@ -688,6 +689,5 @@ class _VedioRecordingScreenState extends State<VedioRecordingScreen> {
       context,
       MaterialPageRoute(builder: (context) => RecordClip()),
     );
-    print('back from camera page');
   }
 }

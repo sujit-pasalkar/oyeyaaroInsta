@@ -12,7 +12,6 @@ import '../const.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../groupInfoTabsPage.dart';
-// import '../playVideo.dart';
 import '../../../feed/playVideo.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../feed/image_view.dart';
@@ -24,6 +23,8 @@ import '../../../models/data-service.dart';
 import 'package:thumbnails/thumbnails.dart';
 import '../../pages/Network/network_screen.dart';
 import '../../../cameraModule/controllers/commonFunctions.dart';
+import '../../pages/New_Group/createNewGroup.dart';
+import '../../pages/recording/getVideo.dart';
 
 class Choice {
   const Choice({this.title, this.icon});
@@ -131,7 +132,7 @@ class ChatScreenState extends State<Chat> {
 
   List<GroupModel> groupInfo;
   var groupMembersArr = [];
-  List<dynamic> listMessage;
+  List<dynamic> listMessage = [];
   SharedPreferences prefs;
 
   File imageFile;
@@ -288,6 +289,19 @@ class ChatScreenState extends State<Chat> {
                             ),
                           ),
                           PopupMenuItem<String>(
+                            value: 'Add Participants',
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5.0),
+                              child: Row(
+                                children: <Widget>[
+                                  Text("Add Participants"),
+                                  Spacer(),
+                                  Icon(Icons.group_add),
+                                ],
+                              ),
+                            ),
+                          ),
+                          PopupMenuItem<String>(
                             value: 'Delete Group',
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 5.0),
@@ -299,7 +313,7 @@ class ChatScreenState extends State<Chat> {
                                 ],
                               ),
                             ),
-                          )
+                          ),
                         ]
                       : [
                           PopupMenuItem<String>(
@@ -402,6 +416,15 @@ class ChatScreenState extends State<Chat> {
       case 'Hide Media':
         {
           this.setPref(0);
+          // for (var i = 0; i < listMessage.length; i++) {
+          //   // print(snapshot.data.documents[1]['type']);
+          //   if(listMessage[i]['type'] == 1 ||listMessage[i]['type'] == 2){
+          //     continue;
+          //   }
+          //   else{
+          //     listMessage.add(listMessage[i]);
+          //   }
+          // }
         }
         break;
       case 'Delete Group':
@@ -422,10 +445,36 @@ class ChatScreenState extends State<Chat> {
             ),
           );
         }
-
         break;
+      case 'Add Participants':
+        {
+          //call add member service
+          //  addMember();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateNewGroup(
+                    appBarName: "Add Participants",
+                    groupName: widget.name,
+                    groupId: widget.peerId,
+                  ),
+            ),
+          );
+        }
     }
   }
+
+  // addMember()async {
+  //   Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => NetworkScreen(
+  //                   hideButtonController: hideButtonController,
+  //                   dialogId: widget.peerId,
+  //                 ),
+  //           ),
+  //         );
+  // }
 
   deleteGp() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -661,38 +710,37 @@ class ChatScreenState extends State<Chat> {
         print("Original vedio file size: " +
             (fileSize / 1024).toString() +
             " KB");
-        if ((fileSize / 1024) <= 10000) {
-          CommonFunctions cmf = new CommonFunctions();
-          cmf.compressVideo(originalVideoUrl.path).then((value) async {
-            File imageFile = new File(value);
-            fileSize = await imageFile.length();
-            print("Compressed vedio file size: " +
-                (fileSize / 1024).toString() +
-                " KB");
+        // if ((fileSize / 1024) <= 500000) { //70 mb
+        CommonFunctions cmf = new CommonFunctions();
+        cmf.compressVideo(originalVideoUrl.path).then((value) async {
+          File imageFile = new File(value);
+          fileSize = await imageFile.length();
+          print("Compressed vedio file size: " +
+              (fileSize / 1024).toString() +
+              " KB");
 
-            http.Response responseTime =
-                await http.get('http://oyeyaaroapi.plmlogix.com/time');
-            timestamp = jsonDecode(responseTime.body)['timestamp'];
-            print('Got timestamp : $timestamp');
-            uploadVideoFile(imageFile, timestamp);
-          }).catchError((error) {
-            print('Error Compressing: $error');
-            setState(() {
-              isLoading = false;
-            });
-            Fluttertoast.showToast(msg: 'Unable to upload this file');
-          });
-        } else {
+          http.Response responseTime =
+              await http.get('http://oyeyaaroapi.plmlogix.com/time');
+          timestamp = jsonDecode(responseTime.body)['timestamp'];
+          print('Got timestamp : $timestamp');
+          uploadVideoFile(imageFile, timestamp);
+        }).catchError((error) {
+          print('Error Compressing: $error');
           setState(() {
             isLoading = false;
           });
-          Fluttertoast.showToast(msg: 'Oops video size is greater than 10MB!');
-        }
+          Fluttertoast.showToast(msg: 'Unable to upload this file');
+        });
+        // } else {
+        //   setState(() {
+        //     isLoading = false;
+        //   });
+        //   Fluttertoast.showToast(msg: 'Oops video size is greater than 500MB!');
+        // }
       } else {
         setState(() {
           isLoading = false;
         });
-        Fluttertoast.showToast(msg: 'video not selected.');
       }
     } catch (e) {
       print('error while opening: $e');
@@ -723,45 +771,30 @@ class ChatScreenState extends State<Chat> {
             (fileSize / 1024).toString() +
             " KB");
 
-        if ((fileSize / 1024) <= 10000) {
-          CommonFunctions cmf = new CommonFunctions();
-          cmf.compressVideo(originalVideoUrl.path).then((value) async {
-            File imageFile = new File(value);
-            fileSize = await imageFile.length();
-            print("Compressed vedio file size: " +
-                (fileSize / 1024).toString() +
-                " KB");
+        CommonFunctions cmf = new CommonFunctions();
+        cmf.compressVideo(originalVideoUrl.path).then((value) async {
+          File imageFile = new File(value);
+          fileSize = await imageFile.length();
+          print("Compressed vedio file size: " +
+              (fileSize / 1024).toString() +
+              " KB");
 
-            if ((fileSize / 1024) <= 10000) {
-              http.Response responseTime =
-                  await http.get('http://oyeyaaroapi.plmlogix.com/time');
-              timestamp = jsonDecode(responseTime.body)['timestamp'];
-              print('Got timestamp : $timestamp');
-              uploadVideoFile(imageFile, timestamp);
-            } else {
-              setState(() {
-                isLoading = false;
-              });
-              Fluttertoast.showToast(msg: 'Video size too large!');
-            }
-          }).catchError((error) {
-            print('Error Compressing: $error');
-            setState(() {
-              isLoading = false;
-            });
-            Fluttertoast.showToast(msg: 'Unable to upload this file');
-          });
-        } else {
+          http.Response responseTime =
+              await http.get('http://oyeyaaroapi.plmlogix.com/time');
+          timestamp = jsonDecode(responseTime.body)['timestamp'];
+          print('Got timestamp : $timestamp');
+          uploadVideoFile(imageFile, timestamp);
+        }).catchError((error) {
+          print('Error Compressing: $error');
           setState(() {
             isLoading = false;
           });
-          Fluttertoast.showToast(msg: 'Oops video size is greater than 10MB!');
-        }
+          Fluttertoast.showToast(msg: 'Unable to upload this file');
+        });
       } else {
         setState(() {
           isLoading = false;
         });
-        Fluttertoast.showToast(msg: 'video not selected.');
       }
 
       // var originalVideoUrl =
@@ -1005,6 +1038,35 @@ class ChatScreenState extends State<Chat> {
     }
   }
 
+  Future<String> getTime(timestamp) async {
+    http.Response responseTime =
+        await http.get('http://oyeyaaroapi.plmlogix.com/time');
+
+    var getTimestamp = jsonDecode(responseTime.body)['timestamp'];
+    // print('ServerTimestamp $getTimestamp');
+
+    int now = (DateTime.now().toLocal().millisecondsSinceEpoch / 1000).ceil();
+    // print("PhoneNow-$now");
+
+    // print("msgTimestamp:" + timestamp);
+
+    int differenceInSeconds = now - int.parse(getTimestamp);
+    // print("diff-$differenceInSeconds");
+
+    getTimestamp = (int.parse(timestamp) + differenceInSeconds).toString();
+
+    // print("ShowTime" +
+    //     DateFormat('dd MMM kk:mm').format(DateTime.fromMillisecondsSinceEpoch(
+    //         int.parse(getTimestamp) * 1000)));
+
+    // print("PhoneTimw :" +
+    //     DateFormat('dd MMM kk:mm')
+    //         .format(DateTime.fromMillisecondsSinceEpoch(now * 1000)));
+
+    return DateFormat('dd MMM kk:mm').format(
+        DateTime.fromMillisecondsSinceEpoch(int.parse(getTimestamp) * 1000));
+  }
+
   Widget buildItem(int index, DocumentSnapshot document) {
     if (document['senderId'] == this.myId) {
       // Right (my message)
@@ -1031,16 +1093,70 @@ class ChatScreenState extends State<Chat> {
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold)),
                                 ),
-                                Text(
-                                  DateFormat('dd MMM kk:mm').format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          int.parse(document['timestamp']) *
-                                              1000)),
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 12.0,
-                                      fontStyle: FontStyle.italic),
-                                ),
+                                FutureBuilder<String>(
+                                  future: getTime(document['timestamp']),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<String> snapshot) {
+                                    switch (snapshot.connectionState) {
+                                      case ConnectionState.none:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.active:
+                                      case ConnectionState.waiting:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.done:
+                                        if (snapshot.hasError)
+                                          return Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic));
+                                        return Text(
+                                          snapshot.data,
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic),
+                                        );
+                                    }
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle
+                                                .italic)); // unreachable
+                                  },
+                                )
                               ],
                             ),
                             new Container(
@@ -1099,16 +1215,70 @@ class ChatScreenState extends State<Chat> {
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold)),
                                 ),
-                                Text(
-                                  DateFormat('dd MMM kk:mm').format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          int.parse(document['timestamp']) *
-                                              1000)),
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 12.0,
-                                      fontStyle: FontStyle.italic),
-                                ),
+                                FutureBuilder<String>(
+                                  future: getTime(document['timestamp']),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<String> snapshot) {
+                                    switch (snapshot.connectionState) {
+                                      case ConnectionState.none:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.active:
+                                      case ConnectionState.waiting:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.done:
+                                        if (snapshot.hasError)
+                                          return Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic));
+                                        return Text(
+                                          snapshot.data,
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic),
+                                        );
+                                    }
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle
+                                                .italic)); // unreachable
+                                  },
+                                )
                               ],
                             ),
                             Padding(
@@ -1193,16 +1363,70 @@ class ChatScreenState extends State<Chat> {
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold)),
                                 ),
-                                Text(
-                                  DateFormat('dd MMM kk:mm').format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          int.parse(document['timestamp']) *
-                                              1000)),
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 12.0,
-                                      fontStyle: FontStyle.italic),
-                                ),
+                                FutureBuilder<String>(
+                                  future: getTime(document['timestamp']),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<String> snapshot) {
+                                    switch (snapshot.connectionState) {
+                                      case ConnectionState.none:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.active:
+                                      case ConnectionState.waiting:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.done:
+                                        if (snapshot.hasError)
+                                          return Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic));
+                                        return Text(
+                                          snapshot.data,
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic),
+                                        );
+                                    }
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle
+                                                .italic)); // unreachable
+                                  },
+                                )
                               ],
                             ),
                             Padding(
@@ -1330,15 +1554,67 @@ class ChatScreenState extends State<Chat> {
                                       ),
                                     ),
                             ),
-                            Text(
-                              DateFormat('dd MMM kk:mm').format(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      int.parse(document['timestamp']) * 1000)),
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12.0,
-                                  fontStyle: FontStyle.italic),
-                            ),
+                            FutureBuilder<String>(
+                              future: getTime(document['timestamp']),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<String> snapshot) {
+                                switch (snapshot.connectionState) {
+                                  case ConnectionState.none:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.active:
+                                  case ConnectionState.waiting:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.done:
+                                    if (snapshot.hasError)
+                                      return Text(
+                                          DateFormat('dd MMM kk:mm').format(
+                                              DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                      int.parse(document[
+                                                              'timestamp']) *
+                                                          1000)),
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic));
+                                    return Text(
+                                      snapshot.data,
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 12.0,
+                                          fontStyle: FontStyle.italic),
+                                    );
+                                }
+                                return Text(
+                                    DateFormat('dd MMM kk:mm').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            int.parse(document['timestamp']) *
+                                                1000)),
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12.0,
+                                        fontStyle:
+                                            FontStyle.italic)); // unreachable
+                              },
+                            )
                           ],
                         ),
                       ),
@@ -1438,15 +1714,67 @@ class ChatScreenState extends State<Chat> {
                                       ),
                                     ),
                             ),
-                            Text(
-                              DateFormat('dd MMM kk:mm').format(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      int.parse(document['timestamp']) * 1000)),
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12.0,
-                                  fontStyle: FontStyle.italic),
-                            ),
+                            FutureBuilder<String>(
+                              future: getTime(document['timestamp']),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<String> snapshot) {
+                                switch (snapshot.connectionState) {
+                                  case ConnectionState.none:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.active:
+                                  case ConnectionState.waiting:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.done:
+                                    if (snapshot.hasError)
+                                      return Text(
+                                          DateFormat('dd MMM kk:mm').format(
+                                              DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                      int.parse(document[
+                                                              'timestamp']) *
+                                                          1000)),
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic));
+                                    return Text(
+                                      snapshot.data,
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 12.0,
+                                          fontStyle: FontStyle.italic),
+                                    );
+                                }
+                                return Text(
+                                    DateFormat('dd MMM kk:mm').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            int.parse(document['timestamp']) *
+                                                1000)),
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12.0,
+                                        fontStyle:
+                                            FontStyle.italic)); // unreachable
+                              },
+                            )
                           ],
                         ),
                       ),
@@ -1488,65 +1816,90 @@ class ChatScreenState extends State<Chat> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                isLastMessageLeft(index) && this.type == 10
-                    ? new GestureDetector(
-                        onTap: () {
-                          print('open this user profile');
-                          audioPlayer.stop();
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ProfilePage(
-                                      userPin: document['senderId'])));
-                        },
-                        child: new Container(
-                          width: 50.0,
-                          height: 50.0,
-                          decoration: new BoxDecoration(
-                            color: Color(0xffb00bae3),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Container(
-                            margin: EdgeInsets.all(1.5),
-                            decoration: new BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Container(
-                                margin: EdgeInsets.all(1.0),
+                isLastMessageLeft(
+                        index) //&& ((document['type'] != 1 ||document['type'] != 2) || this.type == 10)
+                    ? this.type == 10
+                        ? new GestureDetector(
+                            onTap: () {
+                              print('open this user profile');
+                              audioPlayer.stop();
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ProfilePage(
+                                          userPin: document['senderId'])));
+                            },
+                            child: new Container(
+                              width: 50.0,
+                              height: 50.0,
+                              decoration: new BoxDecoration(
+                                color: Color(0xffb00bae3),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Container(
+                                margin: EdgeInsets.all(1.5),
                                 decoration: new BoxDecoration(
+                                  color: Colors.white,
                                   shape: BoxShape.circle,
-                                  color: Colors.grey[300],
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(40.0),
-                                  child: Image.network(
-                                    'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${document['senderId']}',
-                                    fit: BoxFit.cover,
+                                child: Container(
+                                    margin: EdgeInsets.all(1.0),
+                                    decoration: new BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.grey[300],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(40.0),
+                                      child: Image.network(
+                                        'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${document['senderId']}',
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )),
+                              ),
+                            ),
+                          )
+                        : (document['type'] == 1 || document['type'] == 2)
+                            ? Container(width: 50.0)
+                            : new GestureDetector(
+                                onTap: () {
+                                  print('open this user profile');
+                                  audioPlayer.stop();
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ProfilePage(
+                                              userPin: document['senderId'])));
+                                },
+                                child: new Container(
+                                  width: 50.0,
+                                  height: 50.0,
+                                  decoration: new BoxDecoration(
+                                    color: Color(0xffb00bae3),
+                                    shape: BoxShape.circle,
                                   ),
-                                  // CachedNetworkImage(
-                                  //   imageUrl:
-                                  //       'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${document['senderId']}',
-                                  //   fit: BoxFit.cover,
-                                  //   placeholder: Padding(
-                                  //     padding: EdgeInsets.all(15),
-                                  //     child: SizedBox(
-                                  //       child: CircularProgressIndicator(
-                                  //           valueColor:
-                                  //               new AlwaysStoppedAnimation<
-                                  //                   Color>(Color(0xffb00bae3)),
-                                  //           strokeWidth: 1.0),
-                                  //     ),
-                                  //   ),
-                                  //   errorWidget: new Icon(
-                                  //     Icons.error,
-                                  //     color: Colors.black,
-                                  //   ),
-                                  // ),
-                                )),
-                          ),
-                        ),
-                      )
+                                  child: Container(
+                                    margin: EdgeInsets.all(1.5),
+                                    decoration: new BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Container(
+                                        margin: EdgeInsets.all(1.0),
+                                        decoration: new BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.grey[300],
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(40.0),
+                                          child: Image.network(
+                                            'http://oyeyaaroapi.plmlogix.com/getAvatarImageNow/${document['senderId']}',
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )),
+                                  ),
+                                ),
+                              )
                     : Container(width: 50.0),
                 //txt
 
@@ -1564,16 +1917,70 @@ class ChatScreenState extends State<Chat> {
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold)),
                                 ),
-                                Text(
-                                  DateFormat('dd MMM kk:mm').format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          int.parse(document['timestamp']) *
-                                              1000)),
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 12.0,
-                                      fontStyle: FontStyle.italic),
-                                ),
+                                FutureBuilder<String>(
+                                  future: getTime(document['timestamp']),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<String> snapshot) {
+                                    switch (snapshot.connectionState) {
+                                      case ConnectionState.none:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.active:
+                                      case ConnectionState.waiting:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.done:
+                                        if (snapshot.hasError)
+                                          return Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic));
+                                        return Text(
+                                          snapshot.data,
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic),
+                                        );
+                                    }
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle
+                                                .italic)); // unreachable
+                                  },
+                                )
                               ],
                             ),
                             new Container(
@@ -1630,16 +2037,72 @@ class ChatScreenState extends State<Chat> {
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold)),
                                   ),
-                                  Text(
-                                    DateFormat('dd MMM kk:mm').format(
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            int.parse(document['timestamp']) *
-                                                1000)),
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 12.0,
-                                        fontStyle: FontStyle.italic),
-                                  ),
+                                  FutureBuilder<String>(
+                                    future: getTime(document['timestamp']),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<String> snapshot) {
+                                      switch (snapshot.connectionState) {
+                                        case ConnectionState.none:
+                                          return Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic));
+                                        case ConnectionState.active:
+                                        case ConnectionState.waiting:
+                                          return Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic));
+                                        case ConnectionState.done:
+                                          if (snapshot.hasError)
+                                            return Text(
+                                                DateFormat('dd MMM kk:mm')
+                                                    .format(DateTime
+                                                        .fromMillisecondsSinceEpoch(
+                                                            int.parse(document[
+                                                                    'timestamp']) *
+                                                                1000)),
+                                                style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 12.0,
+                                                    fontStyle:
+                                                        FontStyle.italic));
+                                          return Text(
+                                            snapshot.data,
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic),
+                                          );
+                                      }
+                                      return Text(
+                                          DateFormat('dd MMM kk:mm').format(
+                                              DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                      int.parse(document[
+                                                              'timestamp']) *
+                                                          1000)),
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle
+                                                  .italic)); // unreachable
+                                    },
+                                  )
                                 ],
                               ),
                               Padding(
@@ -1709,16 +2172,70 @@ class ChatScreenState extends State<Chat> {
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold)),
                                 ),
-                                Text(
-                                  DateFormat('dd MMM kk:mm').format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          int.parse(document['timestamp']) *
-                                              1000)),
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 12.0,
-                                      fontStyle: FontStyle.italic),
-                                ),
+                                FutureBuilder<String>(
+                                  future: getTime(document['timestamp']),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<String> snapshot) {
+                                    switch (snapshot.connectionState) {
+                                      case ConnectionState.none:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.active:
+                                      case ConnectionState.waiting:
+                                        return Text(
+                                            DateFormat('dd MMM kk:mm').format(
+                                                DateTime
+                                                    .fromMillisecondsSinceEpoch(
+                                                        int.parse(document[
+                                                                'timestamp']) *
+                                                            1000)),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic));
+                                      case ConnectionState.done:
+                                        if (snapshot.hasError)
+                                          return Text(
+                                              DateFormat('dd MMM kk:mm').format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          int.parse(document[
+                                                                  'timestamp']) *
+                                                              1000)),
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12.0,
+                                                  fontStyle: FontStyle.italic));
+                                        return Text(
+                                          snapshot.data,
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic),
+                                        );
+                                    }
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle
+                                                .italic)); // unreachable
+                                  },
+                                )
                               ],
                             ),
                             Padding(
@@ -1865,15 +2382,67 @@ class ChatScreenState extends State<Chat> {
                                 },
                               ),
                             ),
-                            Text(
-                              DateFormat('dd MMM kk:mm').format(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      int.parse(document['timestamp']) * 1000)),
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12.0,
-                                  fontStyle: FontStyle.italic),
-                            ),
+                            FutureBuilder<String>(
+                              future: getTime(document['timestamp']),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<String> snapshot) {
+                                switch (snapshot.connectionState) {
+                                  case ConnectionState.none:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.active:
+                                  case ConnectionState.waiting:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.done:
+                                    if (snapshot.hasError)
+                                      return Text(
+                                          DateFormat('dd MMM kk:mm').format(
+                                              DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                      int.parse(document[
+                                                              'timestamp']) *
+                                                          1000)),
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic));
+                                    return Text(
+                                      snapshot.data,
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 12.0,
+                                          fontStyle: FontStyle.italic),
+                                    );
+                                }
+                                return Text(
+                                    DateFormat('dd MMM kk:mm').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            int.parse(document['timestamp']) *
+                                                1000)),
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12.0,
+                                        fontStyle:
+                                            FontStyle.italic)); // unreachable
+                              },
+                            )
                           ],
                         ),
                       )
@@ -1972,15 +2541,67 @@ class ChatScreenState extends State<Chat> {
                                             ''));
                               },
                             ),
-                            Text(
-                              DateFormat('dd MMM kk:mm').format(
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      int.parse(document['timestamp']) * 1000)),
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12.0,
-                                  fontStyle: FontStyle.italic),
-                            ),
+                            FutureBuilder<String>(
+                              future: getTime(document['timestamp']),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<String> snapshot) {
+                                switch (snapshot.connectionState) {
+                                  case ConnectionState.none:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.active:
+                                  case ConnectionState.waiting:
+                                    return Text(
+                                        DateFormat('dd MMM kk:mm').format(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                int.parse(
+                                                        document['timestamp']) *
+                                                    1000)),
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 12.0,
+                                            fontStyle: FontStyle.italic));
+                                  case ConnectionState.done:
+                                    if (snapshot.hasError)
+                                      return Text(
+                                          DateFormat('dd MMM kk:mm').format(
+                                              DateTime
+                                                  .fromMillisecondsSinceEpoch(
+                                                      int.parse(document[
+                                                              'timestamp']) *
+                                                          1000)),
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12.0,
+                                              fontStyle: FontStyle.italic));
+                                    return Text(
+                                      snapshot.data,
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 12.0,
+                                          fontStyle: FontStyle.italic),
+                                    );
+                                }
+                                return Text(
+                                    DateFormat('dd MMM kk:mm').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            int.parse(document['timestamp']) *
+                                                1000)),
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12.0,
+                                        fontStyle:
+                                            FontStyle.italic)); // unreachable
+                              },
+                            )
                           ],
                         ),
                       )
@@ -2041,6 +2662,7 @@ class ChatScreenState extends State<Chat> {
   }
 
   bool isLastMessageLeft(int index) {
+    // if (this.type == 10) {
     if ((index >= 0 &&
             index < listMessage.length - 1 &&
             listMessage != null &&
@@ -2052,7 +2674,48 @@ class ChatScreenState extends State<Chat> {
     } else {
       return false;
     }
+    // }else{
+    //   if(
+    //     (index >= 0 &&
+    //           index < listMessage.length - 1 &&
+    //           listMessage != null &&
+    //           recursion(index))
+    //           // listMessage[index + 1]['senderName'] !=
+    //           //     listMessage[index]['senderName'])
+
+    //                ||
+    //       (index == listMessage.length - 1 &&
+    //           listMessage[index]['senderId'] != this.myId)
+    //   ){
+    //     return true;
+    //   }else{
+    //   return false;
+    //   }
+    // }
   }
+
+  // if ((index >= 0 &&
+  //         index < listMessage.length - 1 &&
+  //         listMessage != null &&
+  //         listMessage[index + 1]['senderName'] !=
+  //             listMessage[index]['senderName']) ||
+  //     (index == listMessage.length - 1 &&
+  //         listMessage[index]['senderId'] != this.myId)) {
+  //   return true;
+  // } else {
+  //   return false;
+  // }
+
+  //  recursion(index){
+  //    if((listMessage[index + 1]['type'] != 1 || listMessage[index + 1]['type'] != 2) && listMessage[index + 1]['senderName'] !=listMessage[index]['senderName']){
+  //      print('not in recursion : ${index+1}');
+  //     return true;
+  //    }
+  //    else{
+  //      print('in recursion : ${index+1}');
+  //      recursion(index+1);
+  //    }
+  //  }
 
   bool isLastMessageRight(int index) {
     if ((index > 0 &&
@@ -2264,6 +2927,22 @@ class ChatScreenState extends State<Chat> {
                       ),
                       color: Colors.white,
                     ),
+                    Material(
+                      child: new Container(
+                          margin: new EdgeInsets.symmetric(horizontal: 1.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              recordedVideoPage();
+                            },
+                            child: Image(
+                              color: Colors.black,
+                              image: new AssetImage("assets/video_call.png"),
+                              width: 21.0,
+                              height: 21.0,
+                              fit: BoxFit.scaleDown,
+                            ),
+                          )),
+                    ),
                   ],
                 )
               : Text(''),
@@ -2343,6 +3022,28 @@ class ChatScreenState extends State<Chat> {
     );
   }
 
+  recordedVideoPage() async {
+    final recordedVideoPath = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GetVideo(),
+      ),
+    );
+    if(recordedVideoPath != null){
+      setState(() {
+        isLoading = true;
+      });
+      print('selected record  video path  : $recordedVideoPath');
+    http.Response responseTime =
+        await http.get('http://oyeyaaroapi.plmlogix.com/time');
+    timestamp = jsonDecode(responseTime.body)['timestamp'];
+    print('Got timestamp : $timestamp');
+    File imageFile = new File(recordedVideoPath);
+    uploadVideoFile(imageFile, timestamp);
+    }
+    
+  }
+
   // not done
   openOptions() {
     showModalBottomSheet(
@@ -2372,6 +3073,23 @@ class ChatScreenState extends State<Chat> {
         });
   }
 
+  // Future<List<dynamic>> calculate(List<dynamic> snap) async {
+  //   if (this.type == 10) {
+  //     listMessage = snap;
+  //     return listMessage;
+  //   } else {
+  //     for (var i = 0; i < snap.length; i++) {
+  //       if (snap[i]['type'] == 1 || snap[i]['type'] == 2) {
+  //         continue;
+  //       } else {
+  //         print(snap[i]['type']);
+  //         listMessage.add(snap[i]);
+  //       }
+  //     }
+  //     return listMessage;
+  //   }
+  // }
+
   Widget buildListMessage() {
     return Flexible(
       child: widget.peerId == ''
@@ -2393,17 +3111,31 @@ class ChatScreenState extends State<Chat> {
                           valueColor: new AlwaysStoppedAnimation<Color>(
                               Color(0xffb00bae3))));
                 } else {
-                  listMessage = snapshot.data.documents;
+                  if (this.type == 10) {
+                    listMessage = snapshot.data.documents;
+                  } else {
+                    listMessage = [];
+                    for (var i = 0; i < snapshot.data.documents.length; i++) {
+                      // print(snapshot.data.documents[1]['type']);
+                      if (snapshot.data.documents[i]['type'] == 1 ||
+                          snapshot.data.documents[i]['type'] == 2) {
+                        continue;
+                      } else {
+                        listMessage.add(snapshot.data.documents[i]);
+                      }
+                    }
+                  }
 
                   print('-----listMessage----${listMessage.length}');
                   return ListView.builder(
                     padding: EdgeInsets.fromLTRB(3.0, 10.0, 5.0, 0.0),
-                    itemBuilder: (context, index) =>
-                        buildItem(index, listMessage[index]
-                            //             // snapshot.data.documents[index]
-                            ),
+                    itemBuilder: (context, index) => buildItem(
+                          index,
+                          listMessage[index],
+                          // snapshot.data.documents[index]
+                        ),
                     itemCount: listMessage.length,
-                    //     // snapshot.data.documents.length,
+                    // snapshot.data.documents.length,
                     reverse: true,
                     controller: listScrollController,
                   );

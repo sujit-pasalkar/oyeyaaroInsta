@@ -7,7 +7,7 @@ import 'video.dart';
 class RecordingScreen extends StatefulWidget {
   final ScrollController hideButtonController;
 
-  RecordingScreen({@required this.hideButtonController, Key key}) : super(key: key);
+  RecordingScreen({ this.hideButtonController, Key key}) : super(key: key);
 
   @override
   _RecordingScreenState createState() => _RecordingScreenState();

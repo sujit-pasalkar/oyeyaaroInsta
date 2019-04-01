@@ -41,4 +41,22 @@ class _CreateGroupModel {
       return false;
   }
 
+  Future<String> addNewMembers(g_id, g_nm, occupants) async {
+    try {
+      print('$g_nm,| $g_id ,| $occupants');
+      http.Response response = await http.post(
+          "http://oyeyaaroapi.plmlogix.com/addMembers",
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "dialog_id": g_id,
+            "group_name": g_nm,
+            "occupants_ids": occupants
+          }));
+      var res = jsonDecode(response.body);
+      print('create group res :$res');
+      return res['success'].toString();
+    } catch (e) {
+      return e.toString();
+    }
+  }
 }
